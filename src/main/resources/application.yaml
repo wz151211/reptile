@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://172.16.121.77:3306/judgements?useSSL=false&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: '!root'
+    druid:
+      initial-size: 1
+      min-idle: 1
+      max-active: 25
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: select 1
+      test-while-idle: true
+      test-on-bo'row: false
+      test-on-return: true
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 2
+
+
+custom:
+  page-num: 1
+  page-size: 15
+  cookie: 1d1f403a-f89c-4163-b436-41402918055d
+ # user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36 Edg/104.0.1293.63
+  #sec-ch-ua: 'Chromium";v="104", " Not A;Brand";v="99", "Microsoft Edge";v="104'
+  user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36
+  type: 1
+  doc-date: 2016-10-30
+  punish-date: 2021-04-28
