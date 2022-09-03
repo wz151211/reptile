@@ -21,12 +21,4 @@ spring:
 
 
 custom:
-  page-num: 1
-  page-size: 15
-  cookie: 1d1f403a-f89c-4163-b436-41402918055d
- # user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36 Edg/104.0.1293.63
-  #sec-ch-ua: 'Chromium";v="104", " Not A;Brand";v="99", "Microsoft Edge";v="104'
-  user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36
-  type: 1
-  doc-date: 2016-10-30
-  punish-date: 2021-04-28
+  id: 10

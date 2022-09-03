@@ -14,22 +14,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class CustomProperties {
-
-
-    private Integer pageNum = 1;
-
-    private Integer pageSize = 15;
-
-    private String cookie;
-
-    private String userAgent;
-
-    private String secChUa;
-
-    private String type;
-
-    private String docDate;
-
-    private String punishDate;
+    private Integer id = 1;
 
 }

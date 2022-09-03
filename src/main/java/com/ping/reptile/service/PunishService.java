@@ -9,7 +9,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import com.ping.reptile.common.properties.CustomProperties;
+import com.ping.reptile.mapper.ConfigMapper;
 import com.ping.reptile.mapper.PunishMapper;
+import com.ping.reptile.model.entity.ConfigEntity;
 import com.ping.reptile.model.entity.PunishEntity;
 import com.ping.reptile.model.vo.Dict;
 import com.ping.reptile.model.vo.Param;
@@ -43,20 +45,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PunishService {
     @Autowired
     private PunishMapper punishMapper;
-
     @Autowired
     private CustomProperties properties;
+    @Autowired
+    private ConfigMapper configMapper;
+
+    private ConfigEntity config = null;
 
     private List<Dict> areas = new ArrayList<>();
-
     private List<Dict> types = new ArrayList<>();
-
     private List<Dict> themes = new ArrayList<>();
-
     private AtomicInteger days = new AtomicInteger(0);
-
-    private AtomicInteger error = new AtomicInteger(0);
-
     private LocalDate date = null;
 
     private ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -94,14 +93,17 @@ public class PunishService {
     }
 
     public void page(Integer pageNum, Integer pageSize) {
+        if (config == null) {
+            config = configMapper.selectById(properties.getId());
+        }
         if (pageNum == null) {
-            pageNum = properties.getPageNum();
+            pageNum = config.getPageNum();
         }
         if (pageSize == null) {
-            pageSize = properties.getPageSize();
+            pageSize = config.getPageSize();
         }
         if (date == null) {
-            date = LocalDate.parse(properties.getPunishDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+            date = LocalDate.parse(config.getPunishDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
         for (Dict a : areas) {
             for (Dict t : types) {
@@ -115,22 +117,18 @@ public class PunishService {
                     String format = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
                     punishDate.setId(format + "," + format);
                     punishDate.setKey("23_s");
-                    punishDate.setName("处罚日期");
 
                     Param area = new Param();
                     area.setId(a.getCode());
                     area.setKey("17_s");
-                    area.setName("行政区划");
 
                     Param type = new Param();
                     type.setId(t.getCode());
                     type.setKey("8_ss");
-                    type.setName("处罚种类");
 
                     Param theme = new Param();
                     theme.setId(th.getCode());
                     theme.setKey("49_ss");
-                    theme.setName("主题");
                     String param = JSON.toJSONString(Lists.newArrayList(punishDate, area, type, theme));
                     log.info("列表请求参数 {}", param);
                     params.put("queryCondition", param);
@@ -185,6 +183,11 @@ public class PunishService {
                     .execute();
         } catch (Exception e) {
             log.info("查询列表出错", e);
+            try {
+                TimeUnit.SECONDS.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
         }
         try {
             Result result = JSON.parseObject(response.body(), Result.class);
@@ -233,13 +236,8 @@ public class PunishService {
                 log.error("body={}", response.body());
             }
             log.error("列表获取出错", e);
-            error.getAndIncrement();
             try {
-                TimeUnit.SECONDS.sleep(5);
-
-                if (error.getAndIncrement() == 200) {
-                    TimeUnit.MINUTES.sleep(20);
-                }
+                TimeUnit.MINUTES.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -292,9 +290,13 @@ public class PunishService {
             entity.setBasis(object.getString("i5"));
             log.info("当事人名称={}", entity.getName());
             punishMapper.insert(entity);
-            document.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("获取详情出错", e);
+            try {
+                TimeUnit.MINUTES.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
         } finally {
             try {
                 if (response != null) {
@@ -309,20 +311,6 @@ public class PunishService {
             }
         }
     }
-/**
- *   26
- *    2019-06-30
- *    2020-06-30
- *    2021-04-28
- *
- *    77
- *    2019-21-31
- *    2021-12-31
- *    2022-06-17
- *
- *    78
- *    2021-06-31
- *    2022-03-15
- */
+
 
 }

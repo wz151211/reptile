@@ -10,7 +10,6 @@ import com.google.common.collect.Lists;
 import com.ping.reptile.model.vo.Dict;
 import com.ping.reptile.model.vo.Pair;
 import com.ping.reptile.model.vo.Result;
-import com.ping.reptile.service.TestService;
 import com.ping.reptile.utils.IpUtils;
 import com.ping.reptile.utils.ParamsUtils;
 import com.ping.reptile.utils.TripleDES;
@@ -100,8 +99,8 @@ public class TestHttp {
         prams.put("s8", "02");
         prams.put("sortFields", "s51:desc");
         prams.put("ciphertext", "110000+111001+1001100+1001001+110110+1100001+1001110+1011000+1101001+1100010+1001000+1000110+1110011+1100011+1000110+1001000+1101110+1100111+1110000+1100011+1000111+1100010+1101011+110111+110010+110000+110010+110010+110000+111000+110010+110001+1110011+1100001+1101010+1100111+1100011+1001111+110110+1100001+1000101+1000001+1100101+1001111+1100101+1010100+1101101+1000100+1000111+1100100+1110000+1100001+1011000+1010001+111101+111101");
-        prams.put("pageNum", 70);
-        prams.put("pageSize", 10);
+        prams.put("pageNum", 1);
+        prams.put("pageSize", 100);
         Pair pair = new Pair();
         pair.setKey("s8");
         pair.setValue("02");
@@ -111,7 +110,7 @@ public class TestHttp {
         prams.put("wh", 470);
         prams.put("ww", 1680);
 
-        HttpCookie cookie = new HttpCookie("SESSION", "89625ef7-be45-439e-8107-61b11ae8975b");
+        HttpCookie cookie = new HttpCookie("SESSION", "1d47ff06-09ee-42c4-89af-303a6a5c03ab");
         cookie.setDomain("wenshu.court.gov.cn");
         cookie.setPath("/");
         cookie.setHttpOnly(true);
@@ -131,8 +130,8 @@ public class TestHttp {
                 .header("Sec-Fetch-Dest", "empty")
                 .header("Sec-Fetch-Mode", "cors")
                 .header("Sec-Fetch-Site", "same-origin")
-                .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
-                .header("sec-ch-ua", "Chromium\";v=\"104\", \" Not A;Brand\";v=\"99\", \"Microsoft Edge\";v=\"104")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
+                .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
                 .header("sec-ch-ua-mobile", "?0")
                 .header("sec-ch-ua-platform", "Windows")
                 .header("X-Requested-With", "XMLHttpRequest")

@@ -1,7 +1,6 @@
 package com.ping.reptile.service;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSON;
@@ -10,7 +9,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import com.ping.reptile.common.properties.CustomProperties;
+import com.ping.reptile.mapper.ConfigMapper;
 import com.ping.reptile.mapper.DocumentMapper;
+import com.ping.reptile.model.entity.ConfigEntity;
 import com.ping.reptile.model.entity.DocumentEntity;
 import com.ping.reptile.model.vo.Dict;
 import com.ping.reptile.model.vo.Pair;
@@ -32,6 +33,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,22 +45,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @Service
 public class DocumentService {
-
-
     @Autowired
     private DocumentMapper documentMapper;
-
     @Autowired
     private CustomProperties properties;
+    @Autowired
+    private ConfigMapper configMapper;
+
+    private ConfigEntity config = null;
 
     private AtomicInteger days = new AtomicInteger(0);
-
-    private AtomicInteger error = new AtomicInteger(0);
-
     private List<Dict> areas = new ArrayList<>();
-
-
     private LocalDate date = null;
+
+    private ThreadPoolExecutor executor = new ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors(),
+            Runtime.getRuntime().availableProcessors() * 2,
+            30,
+            TimeUnit.MINUTES,
+            new LinkedBlockingQueue<>(),
+            new ThreadPoolExecutor.CallerRunsPolicy());
 
 
     {
@@ -78,21 +85,37 @@ public class DocumentService {
 
 
     public void page(Integer pageNum, Integer pageSize) {
+        if (config == null) {
+            config = configMapper.selectById(properties.getId());
+        }
         if (pageNum == null) {
-            pageNum = properties.getPageNum();
+            pageNum = config.getPageNum();
         }
         if (pageSize == null) {
-            pageSize = properties.getPageSize();
+            pageSize = config.getPageSize();
         }
         if (date == null) {
-            date = LocalDate.parse(properties.getDocDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+            date = LocalDate.parse(config.getDocDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+        }
+        if (date.getYear() < 2000) {
+            return;
         }
         log.info("开始查询日期为[{}]下的数据", date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE));
 
         for (Dict area : areas) {
             List<Dict> courts = getCourt(area.getCode());
             for (Dict court : courts) {
-                list(pageNum, pageSize, court.getCode());
+                Integer finalPageNum = pageNum;
+                Integer finalPageSize = pageSize;
+                try {
+                    TimeUnit.SECONDS.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                executor.execute(() -> {
+                    list(finalPageNum, finalPageSize, court.getCode());
+
+                });
             }
         }
         days.getAndIncrement();
@@ -120,13 +143,15 @@ public class DocumentService {
         Pair court = new Pair();
         court.setKey("s39");
         court.setValue(code);
-        params.put("queryCondition", JSON.toJSONString(Lists.newArrayList(datePair, court)));
+        String pairs = JSON.toJSONString(Lists.newArrayList(datePair, court));
+        log.info("参数={}", pairs);
+        params.put("queryCondition", pairs);
         params.put("cfg", "com.lawyee.judge.dc.parse.dto.SearchDataDsoDTO@queryDoc");
         params.put("__RequestVerificationToken", ParamsUtils.random(24));
         params.put("wh", 470);
         params.put("ww", 1680);
 
-        HttpCookie cookie = new HttpCookie("SESSION", properties.getCookie());
+        HttpCookie cookie = new HttpCookie("SESSION", config.getToken());
         cookie.setDomain("wenshu.court.gov.cn");
         cookie.setPath("/");
         cookie.setHttpOnly(true);
@@ -150,8 +175,8 @@ public class DocumentService {
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
-                    .header("User-Agent", properties.getUserAgent())
-                    .header("sec-ch-ua", properties.getSecChUa())
+                    .header("User-Agent", config.getAgent())
+                    .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -168,6 +193,7 @@ public class DocumentService {
         try {
             Result result = JSON.parseObject(response.body(), Result.class);
             if (result.getCode() == 9) {
+                config = configMapper.selectById(properties.getId());
                 log.info("Session已过期");
                 return;
             }
@@ -180,6 +206,7 @@ public class DocumentService {
                 JSONArray jsonArray = object.getJSONObject("queryResult").getJSONArray("resultList");
                 log.info("列表数量={}", jsonArray.size());
                 if (jsonArray.size() == 0) {
+                    TimeUnit.SECONDS.sleep(5);
                     return;
                 }
                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -187,6 +214,7 @@ public class DocumentService {
                     String docId = obj.getString("rowkey");
                     Long count = documentMapper.selectCount(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getId, docId));
                     if (count > 0) {
+                        TimeUnit.SECONDS.sleep(1);
                         continue;
                     }
                     detail(docId);
@@ -194,17 +222,12 @@ public class DocumentService {
             }
             list(pageNum + 1, pageSize, code);
         } catch (Exception e) {
-
             if (response != null) {
                 log.error("body={}", response.body());
             }
             log.error("列表获取出错", e);
-            error.getAndIncrement();
             try {
-                TimeUnit.SECONDS.sleep(5);
-                if (error.getAndIncrement() == 200) {
-                    TimeUnit.MINUTES.sleep(20);
-                }
+                TimeUnit.MINUTES.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -228,7 +251,7 @@ public class DocumentService {
             params.put("wh", 425);
             params.put("ww", 1680);
             params.put("cs", 0);
-            HttpCookie cookie = new HttpCookie("SESSION", properties.getCookie());
+            HttpCookie cookie = new HttpCookie("SESSION", config.getToken());
             cookie.setDomain("wenshu.court.gov.cn");
             cookie.setPath("/");
             cookie.setHttpOnly(true);
@@ -250,8 +273,8 @@ public class DocumentService {
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
-                    .header("User-Agent", properties.getUserAgent())
-                    .header("sec-ch-ua", properties.getSecChUa())
+                    .header("User-Agent", config.getAgent())
+                    .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -289,7 +312,11 @@ public class DocumentService {
                 log.error("body={}", response.body());
             }
             log.error("详情获取出错", e);
-            error.getAndIncrement();
+            try {
+                TimeUnit.MINUTES.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
         } finally {
             if (response != null) {
                 response.close();
@@ -312,6 +339,7 @@ public class DocumentService {
         params.put("ww", 1680);
         HttpResponse response = null;
         try {
+            TimeUnit.SECONDS.sleep(3);
             response = HttpRequest.post(url)
                     .form(params)
                     .timeout(-1)
@@ -328,8 +356,8 @@ public class DocumentService {
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
-                    .header("User-Agent", properties.getUserAgent())
-                    .header("sec-ch-ua", properties.getSecChUa())
+                    .header("User-Agent", config.getAgent())
+                    .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -348,14 +376,17 @@ public class DocumentService {
             }
             return countList;
         } catch (Exception e) {
+            if (response != null) {
+                log.error("body={}", response.body());
+            }
             log.error("发送列表请求出错", e);
             try {
-                TimeUnit.SECONDS.sleep(5);
+                TimeUnit.MINUTES.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
         }
-        return null;
+        return new ArrayList<Dict>();
     }
 
 }
