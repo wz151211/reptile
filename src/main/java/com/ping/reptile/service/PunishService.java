@@ -106,6 +106,9 @@ public class PunishService {
             date = LocalDate.parse(config.getPunishDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
         for (Dict a : areas) {
+            if(Integer.parseInt(a.getCode()) < 310000){
+                continue;
+            }
             for (Dict t : types) {
                 for (Dict th : themes) {
                     Map<String, Object> params = new HashMap<>();

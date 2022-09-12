@@ -37,18 +37,18 @@ public class TestPunish {
     public void testList() {
         String url = "https://cfws.samr.gov.cn/queryDoc";
         Map<String, Object> params = new HashMap<>();
-        params.put("pageSize", 15);
-        params.put("pageNum", 5);
-        params.put("sortFields", "23_s:desc,16_s:asc");
+        params.put("pageSize", 150);
+        params.put("pageNum", 1);
+        params.put("sortFields", "23_s:asc,16_s:asc");
         params.put("ciphertext", ParamsUtils.cipher());
 
         Param p1 = new Param();
-        p1.setId("2020-03-09,2022-03-09");
+        p1.setId("2019-01-01,2022-12-31");
         p1.setKey("23_s");
         p1.setName("处罚日期");
 
         Param area = new Param();
-        area.setId("110000");
+        area.setId("310000");
         area.setKey("17_s");
         area.setName("行政区划");
 
@@ -62,8 +62,27 @@ public class TestPunish {
         theme.setKey("49_ss");
         theme.setName("主题");
 
-        // params.put("queryCondition", JSON.toJSONString(Lists.newArrayList(type)));
-        params.put("queryCondition", "[{\"id\":\"2019-12-31,2019-12-31\",\"key\":\"23_s\",\"name\":\"处罚日期\"},{\"id\":\"110109\",\"key\":\"17_s\",\"name\":\"行政区划\"},{\"id\":\"02\",\"key\":\"8_ss\",\"name\":\"处罚种类\"},{\"id\":\"05\",\"key\":\"49_ss\",\"name\":\"主题\"}]\n");
+        Param caseNo = new Param();
+        caseNo.setId("沪市监静处〔2020〕06");
+        caseNo.setKey("2_s");
+        caseNo.setName("处罚文号："+caseNo.getId());
+
+        Param full = new Param();
+        full.setId("沪市监静处〔2020〕");
+        full.setKey("51_s");
+        full.setName("全文检索："+ full.getId());
+
+        Param y = new Param();
+        y.setId("2021");
+        y.setKey("24_i");
+
+        Param unit = new Param();
+        unit.setId("上海市金山区市场监督管理局");
+        unit.setKey("14_s,52_s");
+        unit.setName("处罚机关："+unit.getId());
+
+        params.put("queryCondition", JSON.toJSONString(Lists.newArrayList(p1)));
+       // params.put("queryCondition", "[{\"id\":\"2019-12-31,2019-12-31\",\"key\":\"23_s\",\"name\":\"处罚日期\"},{\"id\":\"110109\",\"key\":\"17_s\",\"name\":\"行政区划\"},{\"id\":\"02\",\"key\":\"8_ss\",\"name\":\"处罚种类\"},{\"id\":\"05\",\"key\":\"49_ss\",\"name\":\"主题\"}]\n");
         HttpResponse response = HttpRequest.post(url)
                 .form(params)
                 .timeout(-1)
@@ -121,7 +140,10 @@ public class TestPunish {
         Result result = JSON.parseObject(response.body(), Result.class);
         System.out.println(result);
         JSONObject object = JSON.parseObject(result.getResult());
-        PDDocument document = PDDocument.load(Base64.getDecoder().decode(object.getString("i7").getBytes(StandardCharsets.UTF_8)));
+        byte[] i7s = Base64.getDecoder().decode(object.getString("i7").getBytes(StandardCharsets.UTF_8));
+        System.out.println(new String(i7s));
+
+        PDDocument document = PDDocument.load(i7s);
         PDFTextStripper textStripper = new PDFTextStripper();
         String text = textStripper.getText(document);
         System.out.println(text);

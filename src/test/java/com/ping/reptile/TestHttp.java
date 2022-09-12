@@ -110,7 +110,7 @@ public class TestHttp {
         prams.put("wh", 470);
         prams.put("ww", 1680);
 
-        HttpCookie cookie = new HttpCookie("SESSION", "1d47ff06-09ee-42c4-89af-303a6a5c03ab");
+        HttpCookie cookie = new HttpCookie("SESSION", "d5d2086f-68ef-4830-a73d-dbc0b4e5719f");
         cookie.setDomain("wenshu.court.gov.cn");
         cookie.setPath("/");
         cookie.setHttpOnly(true);
@@ -120,6 +120,8 @@ public class TestHttp {
                 .timeout(-1)
                 .cookie(cookie)
                 .header("Accept", "application/json, text/javascript, */*; q=0.01")
+                .header("X-Real-IP", IpUtils.getIp())
+                .header("X-Forwarded-For", IpUtils.getIp())
                 .header("Accept-Encoding", "gzip, deflate, br")
                 .header("Accept-Language", "zh-CN,zh;q=0.9")
                 .header("Connection", "keep-alive")

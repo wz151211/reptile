@@ -101,21 +101,28 @@ public class DocumentService {
             return;
         }
         log.info("开始查询日期为[{}]下的数据", date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE));
-
+         boolean flag =false;
         for (Dict area : areas) {
-            List<Dict> courts = getCourt(area.getCode());
+            if(area.getCode().equals("500")){
+                flag =true;
+            }
+            if(!flag){
+                continue;
+
+            }            List<Dict> courts = getCourt(area.getCode());
             for (Dict court : courts) {
                 Integer finalPageNum = pageNum;
                 Integer finalPageSize = pageSize;
-                try {
-                    TimeUnit.SECONDS.sleep(5);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                executor.execute(() -> {
-                    list(finalPageNum, finalPageSize, court.getCode());
-
-                });
+//                try {
+//                    TimeUnit.SECONDS.sleep(5);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                executor.execute(() -> {
+//                    list(finalPageNum, finalPageSize, court.getCode());
+//
+//                });
+                list(finalPageNum, finalPageSize, court.getCode());
             }
         }
         days.getAndIncrement();
@@ -176,7 +183,7 @@ public class DocumentService {
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", config.getAgent())
-                    .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
+                    .header("sec-ch-ua", config.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -185,7 +192,7 @@ public class DocumentService {
         } catch (Exception e) {
             log.error("发送列表请求出错", e);
             try {
-                TimeUnit.SECONDS.sleep(5);
+                TimeUnit.MINUTES.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -214,7 +221,6 @@ public class DocumentService {
                     String docId = obj.getString("rowkey");
                     Long count = documentMapper.selectCount(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getId, docId));
                     if (count > 0) {
-                        TimeUnit.SECONDS.sleep(1);
                         continue;
                     }
                     detail(docId);
@@ -274,7 +280,7 @@ public class DocumentService {
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", config.getAgent())
-                    .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
+                    .header("sec-ch-ua", config.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -339,7 +345,7 @@ public class DocumentService {
         params.put("ww", 1680);
         HttpResponse response = null;
         try {
-            TimeUnit.SECONDS.sleep(3);
+            TimeUnit.SECONDS.sleep(5);
             response = HttpRequest.post(url)
                     .form(params)
                     .timeout(-1)
@@ -357,7 +363,7 @@ public class DocumentService {
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", config.getAgent())
-                    .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
+                    .header("sec-ch-ua", config.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")

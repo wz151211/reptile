@@ -20,6 +20,9 @@ public class ConfigEntity {
     @TableField("agent")
     private String agent;
 
+    @TableField("chua")
+    private String chua;
+
     @TableField("token")
     private String token;
 
@@ -28,6 +31,15 @@ public class ConfigEntity {
 
     @TableField("punish_date")
     private String punishDate;
+
+    @TableField("pkulaw_date")
+    private String pkulawDate;
+
+    @TableField("cookie")
+    private String cookie;
+
+    @TableField("authorization")
+    private String authorization;
 
     @TableField("page_num")
     private Integer pageNum;

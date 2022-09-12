@@ -48,4 +48,21 @@ public class ParamsUtils {
         }
         return sb.toString();
     }
+
+    public static String getCaseNo(String caseNo) {
+        String[] split = new String[2];
+        if (caseNo.contains("〔")) {
+            split = caseNo.split("〔");
+        }
+        if (caseNo.contains("（")) {
+            split = caseNo.split("（");
+        }
+        if (caseNo.contains("【")) {
+            split = caseNo.split("【");
+        }
+        if (caseNo.contains("[")) {
+            split = caseNo.split("\\[");
+        }
+        return split[0];
+    }
 }
