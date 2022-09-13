@@ -109,55 +109,47 @@ public class PunishService {
             if(Integer.parseInt(a.getCode()) < 310000){
                 continue;
             }
-            for (Dict t : types) {
-                for (Dict th : themes) {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put("pageSize", pageSize);
-                    params.put("pageNum", pageNum);
-                    params.put("sortFields", "23_s:desc,16_s:asc");
-                    params.put("ciphertext", ParamsUtils.cipher());
-                    Param punishDate = new Param();
-                    String format = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
-                    punishDate.setId(format + "," + format);
-                    punishDate.setKey("23_s");
+            Map<String, Object> params = new HashMap<>();
+            params.put("pageSize", pageSize);
+            params.put("pageNum", pageNum);
+            params.put("sortFields", "23_s:asc,16_s:asc");
+            params.put("ciphertext", ParamsUtils.cipher());
+            Param punishDate = new Param();
+            String format = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
+            punishDate.setId(format + "," + format);
+            punishDate.setKey("23_s");
 
-                    Param area = new Param();
-                    area.setId(a.getCode());
-                    area.setKey("17_s");
+            Param area = new Param();
+            area.setId(a.getCode());
+            area.setKey("17_s");
 
-                    Param type = new Param();
-                    type.setId(t.getCode());
-                    type.setKey("8_ss");
-
-                    Param theme = new Param();
-                    theme.setId(th.getCode());
-                    theme.setKey("49_ss");
-                    String param = JSON.toJSONString(Lists.newArrayList(punishDate, area, type, theme));
-                    log.info("列表请求参数 {}", param);
-                    params.put("queryCondition", param);
-                    try {
-                        TimeUnit.SECONDS.sleep(4);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    executor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            list(params, t.getName(), th.getName(), a.getCode(), a.getName());
-                        }
-                    });
-
-                    //  list(params, t.getName(), th.getName(), a.getCode(), a.getName());
-
-                }
+            String param = JSON.toJSONString(Lists.newArrayList(area));
+            log.info("列表请求参数 {}", param);
+            params.put("queryCondition", param);
+            try {
+                TimeUnit.SECONDS.sleep(4);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    list(params);
+                }
+            });
+
+            //  list(params, t.getName(), th.getName(), a.getCode(), a.getName());
+
+
         }
         days.getAndIncrement();
+
         page(pageNum, pageSize);
+
     }
 
 
-    public void list(Map<String, Object> params, String type, String theme, String areCode, String areaName) {
+    public void list(Map<String, Object> params) {
         String url = "https://cfws.samr.gov.cn/queryDoc";
         HttpResponse response = null;
         try {
@@ -219,17 +211,17 @@ public class PunishService {
                     entity.setName(obj.getString("30"));
                     entity.setPunishUnit(obj.getString("14"));
                     entity.setPunishDate(DateUtil.parse(obj.getString("23"), "yyyyMMdd").toJdkDate());
-                    entity.setType(type);
-                    entity.setTheme(theme);
+                    //         entity.setType(type);
+                    //        entity.setTheme(theme);
                     entity.setResult(obj.getString("7"));
-                    entity.setAreaCode(areCode);
-                    entity.setAreaName(areaName);
+                    //       entity.setAreaCode(areCode);
+                    //       entity.setAreaName(areaName);
                     detail(docId, entity);
                 }
                 if (jsonArray.size() > 0) {
                     Integer pageNum = (Integer) params.get("pageNum");
                     params.put("pageNum", pageNum + 1);
-                    list(params, type, theme, areCode, areaName);
+                    list(params);
                     TimeUnit.SECONDS.sleep(2);
                 }
             }

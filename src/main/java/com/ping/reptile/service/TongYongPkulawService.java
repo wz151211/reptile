@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
-public class PkulawService {
+public class TongYongPkulawService {
     @Autowired
     private CustomProperties properties;
     @Autowired
@@ -78,16 +78,16 @@ public class PkulawService {
             pageSize = config.getPageSize();
         }
         list(pageNum, pageSize);
-        days.addAndGet(3);
+        days.addAndGet(5);
         page(pageNum, pageSize);
     }
 
     public void list(Integer pageNum, Integer pageSize) {
-        String url = " https://www.pkulaw.com/searchingapi/list/advanced/apy";
+        String url = "https://sy.tongyongbei.com/https/77726476706e69737468656265737421e7e056d2373b7d5c7f1fc7af9758/searchingapi/list/advanced/apy?vpn-12-o2-www.pkulaw.com";
         if (date == null) {
             date = LocalDate.parse(config.getPkulawDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
-        LocalDate start = date.minusDays(days.get() + 3);
+        LocalDate start = date.minusDays(days.get() + 5);
         LocalDate end = date.minusDays(days.get());
         LocalDate endMinus = start.minusDays(6);
         LocalDate startMinus = endMinus.minusDays(6);
@@ -149,9 +149,9 @@ public class PkulawService {
                     .header("Accept-Language", "zh-CN,zh;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/json")
-                    .header("Host", "www.pkulaw.com")
-                    .header("Origin", "https://www.pkulaw.com")
-                    .header("Referer", "https://www.pkulaw.com/advanced/penalty/")
+                    .header("Host", "sy.tongyongbei.com")
+                    .header("Origin", "https://sy.tongyongbei.com")
+                    .header("Referer", "https://sy.tongyongbei.com/https/77726476706e69737468656265737421e7e056d2373b7d5c7f1fc7af9758/advanced/penalty/")
                     .header("Authorization", config.getAuthorization())
                     .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
                     .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
@@ -218,13 +218,13 @@ public class PkulawService {
 
     public void details(String gid) {
         log.info("线程池中任务数量={}", executor.getTaskCount());
-        String url = "https://www.pkulaw.com/apy/" + gid + ".html";
+        String url = "https://sy.tongyongbei.com/https/77726476706e69737468656265737421e7e056d2373b7d5c7f1fc7af9758/apy/" + gid + ".html";
         List<HttpCookie> cookies = new ArrayList<>();
-        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", config.getCookie());
-        cookie4.setDomain("www.pkulaw.com");
+        HttpCookie cookie4 = new HttpCookie("wengine_vpn_ticketwvpn_upc_edu_cn", config.getCookie());
+        cookie4.setDomain(".sy.tongyongbei.com");
         cookie4.setPath("/");
         cookie4.setHttpOnly(true);
-        cookie4.setSecure(false);
+        cookie4.setSecure(true);
         cookies.add(cookie4);
         try (final WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED)) {
             TimeUnit.SECONDS.sleep(5);
@@ -239,16 +239,17 @@ public class PkulawService {
             webClient.addRequestHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
             webClient.addRequestHeader("Accept-Encoding", "gzip, deflate, br");
             webClient.addRequestHeader("Accept-Language", "zh-CN,zh;q=0.9");
+            webClient.addRequestHeader("Cache-Control", "max-age=0");
             webClient.addRequestHeader("Connection", "keep-alive");
-            webClient.addRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-            webClient.addRequestHeader("Host", " www.pkulaw.com");
-            webClient.addRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36");
+            webClient.addRequestHeader("Host", "sy.tongyongbei.com");
+            webClient.addRequestHeader("Referer", "https://sy.tongyongbei.com/https/77726476706e69737468656265737421e7e056d2373b7d5c7f1fc7af9758/apy/" + gid + ".html");
+            webClient.addRequestHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36");
             webClient.addRequestHeader("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"");
             webClient.addRequestHeader("sec-ch-ua-mobile", "?0");
-            webClient.addRequestHeader("sec-ch-ua-platform", "Windows");
+            webClient.addRequestHeader("sec-ch-ua-platform", "macOS");
             webClient.addRequestHeader("Sec-Fetch-Dest", "document");
             webClient.addRequestHeader("Sec-Fetch-Mode", "navigate");
-            webClient.addRequestHeader("Sec-Fetch-Site", "none");
+            webClient.addRequestHeader("Sec-Fetch-Site", "same-origin");
             webClient.addRequestHeader("Sec-Fetch-User", "?1");
             webClient.addRequestHeader("Upgrade-Insecure-Requests", "1");
             CookieManager cookieManager = new CookieManager();

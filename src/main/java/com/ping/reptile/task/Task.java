@@ -1,9 +1,6 @@
 package com.ping.reptile.task;
 
-import com.ping.reptile.service.CasePunishService;
-import com.ping.reptile.service.DocumentService;
-import com.ping.reptile.service.PkulawService;
-import com.ping.reptile.service.PunishService;
+import com.ping.reptile.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -26,6 +23,8 @@ public class Task {
     private final Lock punishLock = new ReentrantLock();
 
     private final Lock pkulawLock = new ReentrantLock();
+
+    private final Lock tongYongLock = new ReentrantLock();
     @Autowired
     private DocumentService documentService;
     @Autowired
@@ -33,6 +32,8 @@ public class Task {
     @Autowired
     private PkulawService pkulawService;
 
+    @Autowired
+    private TongYongPkulawService tongYongPkulawService;
     @Autowired
     private CasePunishService casePunishService;
 
@@ -66,7 +67,7 @@ public class Task {
         }
     }
 
-    @Scheduled(initialDelay = 5 * 1000L, fixedRate = 1000 * 60 * 30L)
+   // @Scheduled(initialDelay = 5 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void pkulaw() {
         boolean tryLock = false;
         try {
@@ -76,7 +77,21 @@ public class Task {
             log.error("", e);
         } finally {
             if (tryLock) {
-                punishLock.unlock();
+                pkulawLock.unlock();
+            }
+        }
+    }
+    @Scheduled(initialDelay = 8 * 1000L, fixedRate = 1000 * 60 * 30L)
+    public void tongYong() {
+        boolean tryLock = false;
+        try {
+            tryLock = tongYongLock.tryLock(2, TimeUnit.SECONDS);
+            tongYongPkulawService.page(0, 10);
+        } catch (Exception e) {
+            log.error("", e);
+        } finally {
+            if (tryLock) {
+                tongYongLock.unlock();
             }
         }
     }
