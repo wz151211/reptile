@@ -36,7 +36,7 @@ public class Task {
     @Autowired
     private CasePunishService casePunishService;
 
-  //  @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 30L)
+    //   @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void document() {
         boolean tryLock = false;
         try {
@@ -51,7 +51,7 @@ public class Task {
         }
     }
 
-  //  @Scheduled(initialDelay = 2 * 1000L, fixedRate = 1000 * 60 * 30L)
+    //   @Scheduled(initialDelay = 2 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void punish() {
         boolean tryLock = false;
         try {
@@ -66,12 +66,12 @@ public class Task {
         }
     }
 
-    @Scheduled(initialDelay = 2 * 1000L, fixedRate = 1000 * 60 * 30L)
+    @Scheduled(initialDelay = 5 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void pkulaw() {
         boolean tryLock = false;
         try {
             tryLock = pkulawLock.tryLock(2, TimeUnit.SECONDS);
-            pkulawService.page(0, 100);
+            pkulawService.page(0, 10);
         } catch (Exception e) {
             log.error("", e);
         } finally {

@@ -1,6 +1,7 @@
 package com.ping.reptile.service;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONConfig;
@@ -47,7 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
-public class PkulawService {
+public class PkulawUpdateService {
     @Autowired
     private CustomProperties properties;
     @Autowired
@@ -67,150 +68,27 @@ public class PkulawService {
             new LinkedBlockingQueue<>(),
             new ThreadPoolExecutor.CallerRunsPolicy());
 
-    public void page(Integer pageNum, Integer pageSize) {
+    public void list() {
+
         if (config == null) {
             config = configMapper.selectById(properties.getId());
         }
-        if (pageNum == null) {
-            pageNum = config.getPageNum();
-        }
-        if (pageSize == null) {
-            pageSize = config.getPageSize();
-        }
-        list(pageNum, pageSize);
-        days.addAndGet(5);
-        page(pageNum, pageSize);
-    }
-
-    public void list(Integer pageNum, Integer pageSize) {
-        String url = " https://www.pkulaw.com/searchingapi/list/advanced/apy";
-        if (date == null) {
-            date = LocalDate.parse(config.getPkulawDate(), DateTimeFormatter.ISO_LOCAL_DATE);
-        }
-        LocalDate start = date.minusDays(days.get() + 5);
-        LocalDate end = date.minusDays(days.get());
-        LocalDate endMinus = start.minusDays(6);
-        LocalDate startMinus = endMinus.minusDays(6);
-        String startDate = start.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
-        String endDate = end.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
-        log.info("pageNum = {},day={}", pageNum, startDate);
-        Node punishmentDate = Node.builder().type("daterange").order(5).showText("处罚日期").fieldName("PunishmentDate").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
-                .order(0)
-                .combineAs(1)
-                .start(startDate)
-                .end(endDate)
-                .values(Lists.newArrayList(startMinus.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", "."),
-                        endMinus.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".")))
-                .build())).build();
-
-        Node category = Node.builder().type("select").order(4).showText("主题分类").fieldName("Category").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
-                .value(Lists.newArrayList("003"))
-                .keywordTagData(Lists.newArrayList("003"))
-                .order(0)
-                .combineAs(2)
-                .filterNodes(Lists.newArrayList())
-                .items(Lists.newArrayList(Theme.builder().name("环保").value("003").text("环保").path("003").build()))
-                .build())).build();
-
-/*
-        Node.builder().type("select").order(6).showText("处罚种类").fieldName("PunishmentTypeNew").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
-                .value(Lists.newArrayList("004", "002"))
-                .keywordTagData(Lists.newArrayList("001,002"))
-                .order(0)
-                .combineAs(2)
-                .items(Lists.newArrayList(Theme.builder().name("警告、通报批评").value("001").text("警告、通报批评").path("001").build(),
-                        Theme.builder().name("罚款、没收违法所得、没收非法财物").value("002").text("罚款、没收违法所得、没收非法财物").path("002").build()
-                ))
-                .build())).build();
-*/
-        Pkulaw pkulaw = Pkulaw.builder()
-                .orderbyExpression("PunishmentDate Desc")
-                .pageIndex(pageNum)
-                .pageSize(pageSize)
-                .fieldNodes(Lists.newArrayList(punishmentDate, category))
-                .clusterFilters(new HashMap<>())
-                .groupBy(new HashMap<>())
-                .build();
-
-        HttpResponse response = null;
-        JSONConfig conf = new JSONConfig();
-        conf.setOrder(true);
-        String jsonStr = JSONUtil.toJsonStr(pkulaw, conf);
-        log.info("列表请求参数-{}", jsonStr);
         try {
-            TimeUnit.SECONDS.sleep(10);
-            response = HttpRequest.post(url)
-                    .timeout(1000 * 30)
-                    .body(jsonStr)
-                    .header("X-Real-IP", IpUtils.getIp())
-                    .header("X-Forwarded-For", IpUtils.getIp())
-                    .header("Accept", "application/json, text/plain, */*")
-                    .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Accept-Language", "zh-CN,zh;q=0.9")
-                    .header("Connection", "keep-alive")
-                    .header("Content-Type", "application/json")
-                    .header("Host", "www.pkulaw.com")
-                    .header("Origin", "https://www.pkulaw.com")
-                    .header("Referer", "https://www.pkulaw.com/advanced/penalty/")
-                    .header("Authorization", config.getAuthorization())
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
-                    .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
-                    .header("sec-ch-ua-mobile", "?0")
-                    .header("sec-ch-ua-platform", "Windows")
-                    .header("Sec-Fetch-Dest", "document")
-                    .header("Sec-Fetch-Mode", "navigate")
-                    .header("Sec-Fetch-Site", "none")
-                    .header("Sec-Fetch-User", "?1")
-                    .header("Upgrade-Insecure-Requests", "1")
-                    .header("CustomRequest", "CustomRequest/list/advanced")
-                    .execute();
-        } catch (Exception e) {
-            log.error("发送列表请求出错", e);
-            if (response != null) {
-                log.error("body={}", response.body());
-            }
-            try {
-                TimeUnit.SECONDS.sleep(10);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        try {
-            JSONObject object = JSON.parseObject(response.body());
-            if (object == null) {
-                return;
-            }
-            JSONArray data = object.getJSONArray("data");
-            log.info("列表数量={}", data.size());
-            if (data == null || data.size() == 0) {
-                return;
-            }
-            for (int i = 0; i < data.size(); i++) {
-                JSONObject jsonObject = data.getJSONObject(i);
-                String gid = jsonObject.getString("gid");
-                Long count = punishMapper.selectCount(Wrappers.<PkulawPunishEntity>lambdaQuery().eq(PkulawPunishEntity::getId, gid));
-                if (count > 0) {
-                    continue;
-                }
+            List<PkulawPunishEntity> entities = punishMapper.selectList(Wrappers.<PkulawPunishEntity>lambdaQuery().select(PkulawPunishEntity::getId).isNull(PkulawPunishEntity::getCaseNo));
+            for (int i = 0; i < entities.size(); i++) {
+                PkulawPunishEntity entity = entities.get(i);
+                String gid = entity.getId();
                 executor.execute(() -> {
                     details(gid);
                 });
             }
-            list(pageNum + 1, pageSize);
+            TimeUnit.HOURS.sleep(30);
         } catch (Exception e) {
-            if (response != null) {
-                log.error("body={}", response.body());
-            }
             log.error("列表获取出错", e);
             try {
                 TimeUnit.SECONDS.sleep(10);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
-            }
-        } finally {
-            if (response != null) {
-                response.close();
             }
         }
 
@@ -351,7 +229,7 @@ public class PkulawService {
             entity.setHtml(element.html());
             entity.setContent(contentElement.text());
             log.info("当事人名称={}", entity.getName());
-            punishMapper.insert(entity);
+            punishMapper.updateById(entity);
         } catch (Exception e) {
             log.error("gid={}", gid);
             log.info("HtmlUnit获取页面出错", e);

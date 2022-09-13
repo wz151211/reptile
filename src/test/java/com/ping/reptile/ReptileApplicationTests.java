@@ -1,9 +1,6 @@
 package com.ping.reptile;
 
-import com.ping.reptile.service.CasePunishService;
-import com.ping.reptile.service.DocumentService;
-import com.ping.reptile.service.PkulawService;
-import com.ping.reptile.service.PunishService;
+import com.ping.reptile.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +20,9 @@ class ReptileApplicationTests {
 
     @Autowired
     private PkulawService pkulawService;
+
+    @Autowired
+    private PkulawUpdateService updateService;
 
 
     @Test
@@ -46,6 +46,12 @@ class ReptileApplicationTests {
     public void pkulawPunish() {
         pkulawService.page(0, 100);
     }
+
+    @Test
+    public void updatePunish() {
+        updateService.list();
+    }
+
 
 
 }
