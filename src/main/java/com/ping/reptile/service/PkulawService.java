@@ -99,7 +99,7 @@ public class PkulawService {
         }
         if (executor.getTaskCount() > 1000) {
             try {
-                TimeUnit.SECONDS.sleep(30);
+                TimeUnit.MINUTES.sleep(30);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
