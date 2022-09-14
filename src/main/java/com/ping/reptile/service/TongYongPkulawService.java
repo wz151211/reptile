@@ -78,7 +78,7 @@ public class TongYongPkulawService {
             pageSize = config.getPageSize();
         }
         list(pageNum, pageSize);
-        days.addAndGet(5);
+        days.addAndGet(3);
         page(pageNum, pageSize);
     }
 
@@ -87,13 +87,16 @@ public class TongYongPkulawService {
         if (date == null) {
             date = LocalDate.parse(config.getPkulawDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
-        LocalDate start = date.minusDays(days.get() + 5);
+        LocalDate start = date.minusDays(days.get() + 3);
         LocalDate end = date.minusDays(days.get());
         LocalDate endMinus = start.minusDays(6);
         LocalDate startMinus = endMinus.minusDays(6);
         String startDate = start.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
         String endDate = end.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
         log.info("pageNum = {},day={}", pageNum, startDate);
+        if (start.isBefore(LocalDate.of(2015, 1, 01))) {
+            return;
+        }
         Node punishmentDate = Node.builder().type("daterange").order(5).showText("处罚日期").fieldName("PunishmentDate").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
                 .order(0)
                 .combineAs(1)
@@ -138,7 +141,7 @@ public class TongYongPkulawService {
         String jsonStr = JSONUtil.toJsonStr(pkulaw, conf);
         log.info("列表请求参数-{}", jsonStr);
         try {
-            TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(20);
             response = HttpRequest.post(url)
                     .timeout(1000 * 30)
                     .body(jsonStr)
@@ -170,7 +173,7 @@ public class TongYongPkulawService {
                 log.error("body={}", response.body());
             }
             try {
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -204,7 +207,7 @@ public class TongYongPkulawService {
             }
             log.error("列表获取出错", e);
             try {
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -220,14 +223,29 @@ public class TongYongPkulawService {
         log.info("线程池中任务数量={}", executor.getTaskCount());
         String url = "https://sy.tongyongbei.com/https/77726476706e69737468656265737421e7e056d2373b7d5c7f1fc7af9758/apy/" + gid + ".html";
         List<HttpCookie> cookies = new ArrayList<>();
-        HttpCookie cookie4 = new HttpCookie("wengine_vpn_ticketwvpn_upc_edu_cn", config.getCookie());
-        cookie4.setDomain(".sy.tongyongbei.com");
-        cookie4.setPath("/");
-        cookie4.setHttpOnly(true);
-        cookie4.setSecure(true);
-        cookies.add(cookie4);
+        HttpCookie cookie1 = new HttpCookie("refresh", "0");
+        cookie1.setDomain("sy.tongyongbei.com");
+        cookie1.setPath("/");
+        cookie1.setHttpOnly(false);
+        cookie1.setSecure(false);
+
+        HttpCookie cookie2 = new HttpCookie("user32131", "eqweqwe");
+        cookie2.setDomain(".tongyongbei.com");
+        cookie2.setPath("/");
+        cookie2.setHttpOnly(false);
+        cookie2.setSecure(false);
+
+        HttpCookie cookie3 = new HttpCookie("wengine_vpn_ticketwvpn_upc_edu_cn", config.getCookie());
+        cookie3.setDomain(".sy.tongyongbei.com");
+        cookie3.setPath("/");
+        cookie3.setHttpOnly(true);
+        cookie3.setSecure(true);
+
+        cookies.add(cookie1);
+        cookies.add(cookie2);
+        cookies.add(cookie3);
         try (final WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED)) {
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(10);
             webClient.getOptions().setCssEnabled(false);
             webClient.getOptions().setJavaScriptEnabled(true);
             webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
@@ -356,6 +374,11 @@ public class TongYongPkulawService {
         } catch (Exception e) {
             log.error("gid={}", gid);
             log.info("HtmlUnit获取页面出错", e);
+            try {
+                TimeUnit.SECONDS.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 }

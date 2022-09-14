@@ -83,7 +83,7 @@ public class PkulawService {
     }
 
     public void list(Integer pageNum, Integer pageSize) {
-        String url = " https://www.pkulaw.com/searchingapi/list/advanced/apy";
+        String url = "https://www.pkulaw.com/searchingapi/list/advanced/apy";
         if (date == null) {
             date = LocalDate.parse(config.getPkulawDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
@@ -94,6 +94,9 @@ public class PkulawService {
         String startDate = start.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
         String endDate = end.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
         log.info("pageNum = {},day={}", pageNum, startDate);
+        if (start.isBefore(LocalDate.of(2015, 1, 01))) {
+            return;
+        }
         Node punishmentDate = Node.builder().type("daterange").order(5).showText("处罚日期").fieldName("PunishmentDate").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
                 .order(0)
                 .combineAs(1)
@@ -170,7 +173,7 @@ public class PkulawService {
                 log.error("body={}", response.body());
             }
             try {
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -204,7 +207,7 @@ public class PkulawService {
             }
             log.error("列表获取出错", e);
             try {
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.MINUTES.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -355,6 +358,11 @@ public class PkulawService {
         } catch (Exception e) {
             log.error("gid={}", gid);
             log.info("HtmlUnit获取页面出错", e);
+            try {
+                TimeUnit.MINUTES.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 }

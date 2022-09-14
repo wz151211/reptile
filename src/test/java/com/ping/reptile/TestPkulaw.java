@@ -30,80 +30,8 @@ import java.util.List;
 public class TestPkulaw {
     @Test
     public void testList() {
-        List<HttpCookie> cookies = new ArrayList<>();
-        HttpCookie cookie1 = new HttpCookie("Hm_lvt_8266968662c086f34b2a3e2ae9014bf8", "662819029,1663034065");
-        cookie1.setDomain(".pkulaw.com");
-        cookie1.setPath("/");
-        cookie1.setHttpOnly(false);
-        cookie1.setSecure(false);
-
-        HttpCookie cookie2 = new HttpCookie("xCloseNew", "13");
-        cookie2.setDomain("www.pkulaw.com");
-        cookie2.setPath("/");
-        cookie2.setHttpOnly(false);
-        cookie2.setSecure(false);
-
-        HttpCookie cookie3 = new HttpCookie("isClickDownLayer", "true");
-        cookie3.setDomain("www.pkulaw.com");
-        cookie3.setPath("/");
-        cookie3.setHttpOnly(false);
-        cookie3.setSecure(false);
-
-        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", "jqw2a2qq1t5ekjdynmdttxxl");
-        cookie4.setDomain("www.pkulaw.com");
-        cookie4.setPath("/");
-        cookie4.setHttpOnly(true);
-        cookie4.setSecure(false);
-
-
-        HttpCookie cookie5 = new HttpCookie("KC_ROOT_LOGIN", "1");
-        cookie5.setDomain(".pkulaw.com");
-        cookie5.setPath("/");
-        cookie5.setHttpOnly(false);
-        cookie5.setSecure(false);
-
-        HttpCookie cookie6 = new HttpCookie("KC_ROOT_LOGIN_LEGACY", "1");
-        cookie6.setDomain(".pkulaw.com");
-        cookie6.setPath("/");
-        cookie6.setHttpOnly(false);
-        cookie6.setSecure(false);
-
-        HttpCookie cookie7 = new HttpCookie("userislogincookie", "true");
-        cookie7.setDomain("www.pkulaw.com");
-        cookie7.setPath("/");
-        cookie7.setHttpOnly(false);
-        cookie7.setSecure(false);
-
-        HttpCookie cookie8 = new HttpCookie("authormes", "28d8de58ebc08f10635544ccfa4db1545dfd5836e823ac726b9ef843994c77300dbbf4b4de013855bdfb");
-        cookie8.setDomain("www.pkulaw.com");
-        cookie8.setPath("/");
-        cookie8.setHttpOnly(false);
-        cookie8.setSecure(false);
-
-        HttpCookie cookie9 = new HttpCookie("Hm_up_8266968662c086f34b2a3e2ae9014bf8", "%7B%22ysx_yhqx_20220602%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%2C%22ysx_hy_20220527%22%3A%7B%22value%22%3A%2201%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22b43a8dea-44d0-e811-9e87-5254ec69a56d%22%2C%22scope%22%3A1%7D%2C%22ysx_yhjs_20220602%22%3A%7B%22value%22%3A%222%22%2C%22scope%22%3A1%7D%7D");
-        cookie9.setDomain("www.pkulaw.com");
-        cookie9.setPath("/");
-        cookie9.setHttpOnly(false);
-        cookie9.setSecure(false);
-
-        HttpCookie cookie10 = new HttpCookie("Hm_lpvt_8266968662c086f34b2a3e2ae9014bf8", "1663057853");
-        cookie10.setDomain(".pkulaw.com");
-        cookie10.setPath("/");
-        cookie10.setHttpOnly(false);
-        cookie10.setSecure(false);
-
-
-        cookies.add(cookie1);
-        cookies.add(cookie2);
-        cookies.add(cookie3);
-        cookies.add(cookie4);
-        cookies.add(cookie5);
-        cookies.add(cookie6);
-        cookies.add(cookie7);
-        cookies.add(cookie8);
-        cookies.add(cookie9);
-        cookies.add(cookie10);
-        String url = " https://www.pkulaw.com/searchingapi/list/advanced/apy";
+        // String url = " https://www.pkulaw.com/searchingapi/list/advanced/apy";
+        String url = "https://sy.tongyongbei.com/https/77726476706e69737468656265737421e7e056d2373b7d5c7f1fc7af9758/searchingapi/list/advanced/apy?vpn-12-o2-www.pkulaw.com";
         Node punishmentDate = Node.builder().type("daterange").order(5).showText("处罚日期").fieldName("PunishmentDate").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
                 .order(0)
                 .combineAs(1)
@@ -146,19 +74,19 @@ public class TestPkulaw {
         System.out.println(jsonStr);
         HttpResponse response = HttpRequest.post(url)
                 .timeout(-1)
-             //   .body("{\"orderbyExpression\":\"PunishmentDate Desc\",\"pageIndex\":0,\"pageSize\":10,\"fieldNodes\":[{\"type\":\"daterange\",\"order\":5,\"showText\":\"处罚日期\",\"fieldName\":\"PunishmentDate\",\"combineAs\":2,\"fieldItems\":[{\"order\":0,\"combineAs\":1,\"start\":\"2018.12.21\",\"end\":\"2018.12.26\",\"values\":[\"2018.12.09\",\"2018.12.15\"]}]},{\"type\":\"select\",\"order\":4,\"showText\":\"主题分类\",\"fieldName\":\"Category\",\"combineAs\":2,\"fieldItems\":[{\"order\":0,\"combineAs\":2,\"items\":[{\"name\":\"环保\",\"value\":\"003\",\"text\":\"环保\",\"path\":\"003\"}],\"value\":[\"003\"],\"keywordTagData\":[\"003\"],\"filterNodes\":[]}]}],\"clusterFilters\":{},\"groupBy\":{}}\n")
+                //   .body("{\"orderbyExpression\":\"PunishmentDate Desc\",\"pageIndex\":0,\"pageSize\":10,\"fieldNodes\":[{\"type\":\"daterange\",\"order\":5,\"showText\":\"处罚日期\",\"fieldName\":\"PunishmentDate\",\"combineAs\":2,\"fieldItems\":[{\"order\":0,\"combineAs\":1,\"start\":\"2018.12.21\",\"end\":\"2018.12.26\",\"values\":[\"2018.12.09\",\"2018.12.15\"]}]},{\"type\":\"select\",\"order\":4,\"showText\":\"主题分类\",\"fieldName\":\"Category\",\"combineAs\":2,\"fieldItems\":[{\"order\":0,\"combineAs\":2,\"items\":[{\"name\":\"环保\",\"value\":\"003\",\"text\":\"环保\",\"path\":\"003\"}],\"value\":[\"003\"],\"keywordTagData\":[\"003\"],\"filterNodes\":[]}]}],\"clusterFilters\":{},\"groupBy\":{}}\n")
                 //     .body("{\"orderbyExpression\":\"PunishmentDate Desc\",\"pageIndex\":0,\"pageSize\":10,\"fieldNodes\":[{\"type\":\"select\",\"order\":4,\"showText\":\"主题分类\",\"fieldName\":\"Category\",\"combineAs\":2,\"fieldItems\":[{\"value\":[\"003\"],\"keywordTagData\":[\"003\"],\"order\":0,\"combineAs\":2,\"items\":[{\"value\":\"003\",\"name\":\"环保\",\"text\":\"环保\",\"path\":\"003\"}],\"filterNodes\":[]}]},{\"type\":\"daterange\",\"order\":5,\"showText\":\"处罚日期\",\"fieldName\":\"PunishmentDate\",\"combineAs\":2,\"range\":\"\",\"fieldItems\":[{\"order\":0,\"combineAs\":1,\"start\":\"2018.09.08\",\"end\":\"2018.09.10\",\"values\":[\"2018.09.07\",\"2018.09.07\"]}]}],\"clusterFilters\":{},\"groupBy\":{}}")
-               // .cookie(cookies)
-                .body("{\"orderbyExpression\":\"PunishmentDate Desc\",\"pageIndex\":0,\"pageSize\":20,\"fieldNodes\":[{\"type\":\"select\",\"order\":4,\"showText\":\"主题分类\",\"fieldName\":\"Category\",\"combineAs\":2,\"fieldItems\":[{\"value\":[\"003\"],\"keywordTagData\":[\"003\"],\"order\":0,\"combineAs\":2,\"items\":[{\"value\":\"003\",\"name\":\"环保\",\"text\":\"环保\",\"path\":\"003\"}],\"filterNodes\":[]}]},{\"type\":\"daterange\",\"order\":5,\"showText\":\"处罚日期\",\"fieldName\":\"PunishmentDate\",\"combineAs\":2,\"range\":\"\",\"fieldItems\":[{\"order\":0,\"combineAs\":1,\"start\":\"2018.12.21\",\"end\":\"2018.12.26\",\"values\":[\"2018.09.20\",\"2018.09.28\"]}]}],\"clusterFilters\":{},\"groupBy\":{}}")
+                // .cookie(cookies)
+                .body("{\"orderbyExpression\":\"PunishmentDate Desc\",\"pageIndex\":0,\"pageSize\":10,\"fieldNodes\":[{\"type\":\"select\",\"order\":4,\"showText\":\"主题分类\",\"fieldName\":\"Category\",\"combineAs\":2,\"fieldItems\":[{\"value\":[\"003\"],\"keywordTagData\":[\"003\"],\"order\":0,\"combineAs\":2,\"items\":[{\"value\":\"003\",\"name\":\"环保\",\"text\":\"环保\",\"path\":\"003\"}],\"filterNodes\":[]}]},{\"type\":\"daterange\",\"order\":5,\"showText\":\"处罚日期\",\"fieldName\":\"PunishmentDate\",\"combineAs\":2,\"range\":\"\",\"fieldItems\":[{\"order\":0,\"combineAs\":1,\"start\":\"2018.12.21\",\"end\":\"2018.12.26\",\"values\":[\"2018.09.20\",\"2018.09.28\"]}]}],\"clusterFilters\":{},\"groupBy\":{}}")
                 .header("Accept", "application/json, text/plain, */*")
                 .header("Accept-Encoding", "gzip, deflate, br")
                 .header("Accept-Language", "zh-CN,zh;q=0.9")
                 .header("Connection", "keep-alive")
                 .header("Content-Type", "application/json")
-                .header("Host", "www.pkulaw.com")
-                .header("Origin", "https://www.pkulaw.com")
-                .header("Referer", "https://www.pkulaw.com/advanced/penalty/")
-                .header("Authorization","Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJFXzZpaDM1eVRMSk1pZUkwdnFnOU1tVFFySjZSY1VTeGlYZU5kY01hb1lrIn0.eyJleHAiOjE2NjU1ODgxNzQsImlhdCI6MTY2Mjk5NjQzNSwiYXV0aF90aW1lIjoxNjYyOTk2MTc0LCJqdGkiOiJkODZmZDA1Mi05MDQ3LTQ0NmQtYjIyYi1jNmIxMTcyN2Y3YmEiLCJpc3MiOiJodHRwczovL2Nhcy5wa3VsYXcuY29tL2F1dGgvcmVhbG1zL2ZhYmFvIiwic3ViIjoiMDRmNjg2N2EtOGJhMy00YTFiLTgzNzAtMGIwZjU1MWY5YjFhIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicGt1bGF3Iiwic2Vzc2lvbl9zdGF0ZSI6ImViNjY4NGY3LWQ4ZjktNDQwYy05ZDczLTVkOTEyY2E0Y2QyMyIsImFjciI6IjAiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZXhhbSIsInJlZmVyZW5jZSIsIue7hOeuoeeQhuWRmCIsInByb2N1cmF0b3JhdGUiLCJsYXciLCJqb3VybmFsIiwibGF3ZmlybSIsInBlbmFsdHkiLCJlbmdsaXNoIiwidmlkZW8iLCJjYXNlIl19LCJzY29wZSI6Im9wZW5pZCBwa3VsYXctZXh0ZW5zaW9ucyB2NiByb2xlcyBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJwaG9uZU51bWJlciI6IjgyNjY4MjY2IiwibG9naW5UeXBlIjoicGFzc3dvcmQiLCJuaWNrbmFtZSI6Iuilv-WMl-WGnOael-enkeaKgOWkp-WtpiIsImV4dGVuc2lvbl9yb2xlcyI6eyJ3ZWl4aW4iOlsiZXhhbSIsInJlZmVyZW5jZSIsInByb2N1cmF0b3JhdGUiLCJqb3VybmFsIiwibGF3IiwibGF3ZmlybSIsInBlbmFsdHkiLCJlbmdsaXNoIiwidmlkZW8iLCJjYXNlIl19LCJwcmVmZXJyZWRfdXNlcm5hbWUiOiLopb_ljJflhpzmnpfnp5HmioDlpKflraYiLCJlbWFpbCI6ImwxODY2OTMxNDA5OUAxNjMuY29tIn0.be7NaHVDgTXdvmd9cEJUllaqHL7D_lIi1VqVWzBAvS2qpCGRN6-38skKrQ3ECaP6tgQZ1NpHA86z8GY3l_rl-AT_qkaR5wM-xooZk9IiGHToRnq6gZdSKlMhbawka6mbYVT5FtGHylMNahAanTDBUsE2DMINV8N16w7rZzLpYUe7t9u6WKhCpn2t5G95BW2uAgTSOwWAv_XLIqvZSxFi8uOVa2rn5IJmaT3BA1M1mCPGiUqeUJ4P4IgVFXo9MoQ4boomh_egeqrWrL0JN4HyM7YLV3z2Hizve90E1YF5NqO_ckuSt-SVs1ntNKllmMvxJike9Cgh7XDslLF2Me5xvA")
+                .header("Host", "sy.tongyongbei.com")
+                .header("Origin", " https://sy.tongyongbei.com")
+                .header("Referer", "https://sy.tongyongbei.com/https/77726476706e69737468656265737421e7e056d2373b7d5c7f1fc7af9758/advanced/penalty/")
+                .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJFXzZpaDM1eVRMSk1pZUkwdnFnOU1tVFFySjZSY1VTeGlYZU5kY01hb1lrIn0.eyJleHAiOjE2NjU2NTE5NzMsImlhdCI6MTY2MzA2Mzk4NSwiYXV0aF90aW1lIjoxNjYzMDU5OTczLCJqdGkiOiIzYTIzZGI3NS05ZmEwLTRmY2MtOTA4ZS0wYTk5NzUyYTg2N2EiLCJpc3MiOiJodHRwczovL2Nhcy5wa3VsYXcuY29tL2F1dGgvcmVhbG1zL2ZhYmFvIiwic3ViIjoiYmVhYmRkMTAtZGNiMi00N2ZmLWEyYzktOWUxYWY0NWIxYTVjIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicGt1bGF3Iiwic2Vzc2lvbl9zdGF0ZSI6IjQzMGEyZGI3LTJlZDQtNGE2NC05OTQzLTFkZmU1ZGYyYjZjYSIsImFjciI6IjAiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZXhhbSIsInJlZmVyZW5jZSIsIue7hOeuoeeQhuWRmCIsInByb2N1cmF0b3JhdGUiLCJsYXciLCJqb3VybmFsIiwibGF3ZmlybSIsInBlbmFsdHkiLCJlbmdsaXNoIiwidmlkZW8iLCJjYXNlIl19LCJzY29wZSI6Im9wZW5pZCBwa3VsYXctZXh0ZW5zaW9ucyB2NiByb2xlcyBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJwaG9uZU51bWJlciI6IjgyNjY4MjY2IiwibG9naW5UeXBlIjoiaXAiLCJuaWNrbmFtZSI6IuS4reWbveefs-ayueWkp-Wtpu-8iOWNjuS4nO-8iSIsImV4dGVuc2lvbl9yb2xlcyI6e30sInByZWZlcnJlZF91c2VybmFtZSI6IuS4reWbveefs-ayueWkp-Wtpu-8iOWNjuS4nO-8iSIsImVtYWlsIjoiMjU4MzgwNjEzM0BxcS5jb20ifQ.UbzefMaF_f6gCizEnAFvEix-i9ddnH0ZEJWNiQaRa7TbcVyLTR9-y6RJ6wxpIJW4IKDMjkC6ZCN5bnNEQUA9RWMaJ68X6Ta6kb8RqenjbnSiIIClUqxAJX0IgaLVuDpZ0MXbZHl9PX0NP7Eza2EvyXb68emlo7iVM06MeN0r4FJ05wfdzlkYyl2jix8dgASftZFbFaOPptMnlZFwyO5ZsZTiUw0u3HifgVipD55nGK2uy4W44FjdVv7QRZohV60rIYXPKB9fXXg9n4rAwoCE7hjfIVZBvatg6y4VJ5Cm6zdO2PhZIBoA8mUNqARGW4Yn3dtkojSGVwjV8tvaVikoPA")
                 .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
                 .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
                 .header("sec-ch-ua-mobile", "?0")
@@ -189,7 +117,8 @@ public class TestPkulaw {
 
     @Test
     public void testDetail() throws IOException {
-        String url = "https://www.pkulaw.com/apy/9445d6e6deb7c9d28642a8afbee2f1a7c8b6b41f8d538dc5bdfb.html";
+        //   String url = "https://www.pkulaw.com/apy/9445d6e6deb7c9d28642a8afbee2f1a7c8b6b41f8d538dc5bdfb.html";
+        String url = "https://sy.tongyongbei.com/https/77726476706e69737468656265737421e7e056d2373b7d5c7f1fc7af9758/apy/9445d6e6deb7c9d2cb4fbc39c8658efb1c7c311266691b08bdfb.html";
         List<HttpCookie> cookies = new ArrayList<>();
         HttpCookie cookie1 = new HttpCookie("Hm_lvt_8266968662c086f34b2a3e2ae9014bf8", "662819029,1663034065");
         cookie1.setDomain(".pkulaw.com");
@@ -209,7 +138,7 @@ public class TestPkulaw {
         cookie3.setHttpOnly(false);
         cookie3.setSecure(false);
 
-        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", "jqw2a2qq1t5ekjdynmdttxxl\t");
+        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", "gbngjmapy0rvhcggc53wwyty");
         cookie4.setDomain("www.pkulaw.com");
         cookie4.setPath("/");
         cookie4.setHttpOnly(true);
@@ -263,9 +192,15 @@ public class TestPkulaw {
         //   cookies.add(cookie8);
         //   cookies.add(cookie9);
         //   cookies.add(cookie10);
+
+        HttpCookie cookie12 = new HttpCookie("user32131", "eqweqwe");
+        cookie12.setDomain(".tongyongbei.com");
+        cookie12.setPath("/");
+        cookie12.setHttpOnly(false);
+        cookie12.setSecure(false);
         HttpResponse response = HttpRequest.post(url)
                 .timeout(-1)
-                .cookie(cookie1, cookie2, cookie3, cookie4, cookie5, cookie6, cookie7, cookie8, cookie9, cookie10)
+                .cookie(cookie12)
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
                 .header("Accept-Encoding", "gzip, deflate, br")
                 .header("Accept-Language", "zh-CN,zh;q=0.9")
@@ -324,20 +259,7 @@ public class TestPkulaw {
             webClient.setCookieManager(cookieManager);
             HtmlPage page = webClient.getPage("https://www.pkulaw.com/apy/9445d6e6deb7c9d25ca0e12a0c87b929284e62cac681b2ecbdfb.html?way=listView");
             DomElement element = page.getElementById("gridleft");
-            // System.out.println(element.asNormalizedText());
-            DomElement name = page.getElementByName("linkCopyFulltext");
-            ScriptResult toCopyFulltext = page.executeJavaScript("toCopyFulltext");
-            ScriptResult fulltext = page.executeJavaScriptFunction("toCopyFulltext", null, null, name);
-            Object javaScriptResult = fulltext.getJavaScriptResult();
-            String s2 = fulltext.toString();
-            String s1 = toCopyFulltext.toString();
-            Object scriptResult = toCopyFulltext.getJavaScriptResult();
-            System.out.println(scriptResult);
-            Page click = name.click();
-            String s = click.toString();
-            WebResponse webResponse = click.getWebResponse();
-            String contentAsString = webResponse.getContentAsString();
-            System.out.println(contentAsString);
+            System.out.println(element.asNormalizedText());
         } catch (IOException e) {
             log.info("HtmlUnit获取页面出错", e);
         }
