@@ -97,6 +97,13 @@ public class TongYongPkulawService {
         if (start.isBefore(LocalDate.of(2015, 1, 01))) {
             return;
         }
+        if (executor.getTaskCount() > 1000) {
+            try {
+                TimeUnit.SECONDS.sleep(30);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         Node punishmentDate = Node.builder().type("daterange").order(5).showText("处罚日期").fieldName("PunishmentDate").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
                 .order(0)
                 .combineAs(1)
