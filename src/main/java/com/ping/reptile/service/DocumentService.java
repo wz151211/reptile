@@ -97,12 +97,17 @@ public class DocumentService {
         if (date == null) {
             date = LocalDate.parse(config.getDocDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
-        if (date.getYear() < 2000) {
+        if (date.getYear() < 1990) {
             return;
         }
         log.info("开始查询日期为[{}]下的数据", date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE));
         list(pageNum, pageSize);
         days.getAndIncrement();
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
         page(pageNum, pageSize);
     }
 
@@ -213,10 +218,6 @@ public class DocumentService {
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject obj = jsonArray.getJSONObject(i);
                     String docId = obj.getString("rowkey");
-                    Long count = documentMapper.selectCount(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getId, docId));
-                    if (count > 0) {
-                        continue;
-                    }
                     detail(docId);
                 }
             }
@@ -227,7 +228,7 @@ public class DocumentService {
             }
             log.error("列表获取出错", e);
             try {
-                TimeUnit.MINUTES.sleep(20);
+                TimeUnit.SECONDS.sleep(5);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -241,7 +242,7 @@ public class DocumentService {
     public void detail(String docId) {
         HttpResponse response = null;
         try {
-            TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(8);
             String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
             Map<String, Object> params = new HashMap<>();
             params.put("docId", docId);
@@ -287,6 +288,10 @@ public class DocumentService {
                 String decrypt = TripleDES.decrypt(result.getSecretKey(), result.getResult(), iv);
                 JSONObject jsonObject = JSON.parseObject(decrypt);
                 String id = jsonObject.getString("s5");
+                Long count = documentMapper.selectCount(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getId, id));
+                if (count > 0) {
+                    return;
+                }
                 String name = jsonObject.getString("s1");
                 String caseNo = jsonObject.getString("s7");
                 String courtName = jsonObject.getString("s2");
@@ -313,7 +318,7 @@ public class DocumentService {
             }
             log.error("详情获取出错", e);
             try {
-                TimeUnit.MINUTES.sleep(20);
+                TimeUnit.SECONDS.sleep(5);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
