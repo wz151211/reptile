@@ -138,7 +138,7 @@ public class TestPkulaw {
         cookie3.setHttpOnly(false);
         cookie3.setSecure(false);
 
-        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", "gbngjmapy0rvhcggc53wwyty");
+        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", "iobfq2gn35rligaqy3djans3");
         cookie4.setDomain("www.pkulaw.com");
         cookie4.setPath("/");
         cookie4.setHttpOnly(true);

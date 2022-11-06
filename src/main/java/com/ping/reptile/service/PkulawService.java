@@ -78,7 +78,7 @@ public class PkulawService {
             pageSize = config.getPageSize();
         }
         list(pageNum, pageSize);
-        days.addAndGet(3);
+        days.getAndIncrement();
         page(pageNum, pageSize);
     }
 
@@ -87,7 +87,7 @@ public class PkulawService {
         if (date == null) {
             date = LocalDate.parse(config.getPkulawDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
-        LocalDate start = date.minusDays(days.get() + 3);
+        LocalDate start = date.minusDays(days.get());
         LocalDate end = date.minusDays(days.get());
         LocalDate endMinus = start.minusDays(6);
         LocalDate startMinus = endMinus.minusDays(6);
@@ -97,7 +97,7 @@ public class PkulawService {
         if (start.isBefore(LocalDate.of(2015, 1, 01))) {
             return;
         }
-        if (executor.getTaskCount() > 1000) {
+        if (executor.getQueue().size() > 1000) {
             try {
                 TimeUnit.MINUTES.sleep(30);
             } catch (InterruptedException e) {
@@ -137,7 +137,7 @@ public class PkulawService {
                 .orderbyExpression("PunishmentDate Desc")
                 .pageIndex(pageNum)
                 .pageSize(pageSize)
-                .fieldNodes(Lists.newArrayList(punishmentDate, category))
+                .fieldNodes(Lists.newArrayList(punishmentDate))
                 .clusterFilters(new HashMap<>())
                 .groupBy(new HashMap<>())
                 .build();
@@ -148,7 +148,7 @@ public class PkulawService {
         String jsonStr = JSONUtil.toJsonStr(pkulaw, conf);
         log.info("列表请求参数-{}", jsonStr);
         try {
-            TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(5);
             response = HttpRequest.post(url)
                     .timeout(1000 * 30)
                     .body(jsonStr)
@@ -214,7 +214,7 @@ public class PkulawService {
             }
             log.error("列表获取出错", e);
             try {
-                TimeUnit.MINUTES.sleep(20);
+                TimeUnit.SECONDS.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -227,7 +227,7 @@ public class PkulawService {
     }
 
     public void details(String gid) {
-        log.info("线程池中任务数量={}", executor.getTaskCount());
+        log.info("线程池中任务数量={}", executor.getQueue().size());
         String url = "https://www.pkulaw.com/apy/" + gid + ".html";
         List<HttpCookie> cookies = new ArrayList<>();
         HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", config.getCookie());
@@ -237,7 +237,7 @@ public class PkulawService {
         cookie4.setSecure(false);
         cookies.add(cookie4);
         try (final WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED)) {
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(3);
             webClient.getOptions().setCssEnabled(false);
             webClient.getOptions().setJavaScriptEnabled(true);
             webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
@@ -366,7 +366,7 @@ public class PkulawService {
             log.error("gid={}", gid);
             log.info("HtmlUnit获取页面出错", e);
             try {
-                TimeUnit.MINUTES.sleep(20);
+                TimeUnit.SECONDS.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }

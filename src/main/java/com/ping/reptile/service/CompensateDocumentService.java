@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 @Service
-public class DocumentService {
+public class CompensateDocumentService {
     @Autowired
     private DocumentMapper documentMapper;
     @Autowired
@@ -97,16 +97,36 @@ public class DocumentService {
         if (date == null) {
             date = LocalDate.parse(config.getDocDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
-        if (date.getYear() < 2000) {
-            return;
+        ArrayList<Integer> years = Lists.newArrayList(2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013);
+        ArrayList<String> books = Lists.newArrayList("01", "02", "04", "05");
+        for (Integer year : years) {
+            for (String book : books) {
+                Integer finalPageNum = pageNum;
+                Integer finalPageSize = pageSize;
+                try {
+                    TimeUnit.SECONDS.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                /*executor.execute(() -> {
+                    list(finalPageNum, finalPageSize, year, book);
+
+                });*/
+                list(finalPageNum, finalPageSize, year, book);
+            }
         }
-        log.info("开始查询日期为[{}]下的数据", date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE));
-        list(pageNum, pageSize);
         days.getAndIncrement();
         page(pageNum, pageSize);
     }
 
-    public void list(Integer pageNum, Integer pageSize) {
+    public void list(Integer pageNum, Integer pageSize, Integer code, String book) {
+     /*   if (executor.getQueue().size() > 500) {
+            try {
+                TimeUnit.MINUTES.sleep(30);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }*/
         log.info("pageNum = {}", pageNum);
         String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
         String pageId = UUID.randomUUID().toString().replace("-", "");
@@ -114,37 +134,31 @@ public class DocumentService {
         String start = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         String end = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         params.put("pageId", pageId);
-        params.put("s1", "盗窃");
-        params.put("s8", "02");
-        params.put("s6", "01");
-        params.put("cprqStart", start);
-        params.put("cprqEnd", end);
+        params.put("s8", "05");
+        //  params.put("cprqStart", start);
+        //  params.put("cprqEnd", end);
         params.put("sortFields", "s51:desc");
         params.put("ciphertext", ParamsUtils.cipher());
         params.put("pageNum", pageNum);
         params.put("pageSize", pageSize);
-        Pair datePair = new Pair();
-        datePair.setKey("cprq");
-        datePair.setValue(start + " TO " + end);
 
-        Pair name = new Pair();
-        name.setKey("s1");
-        name.setValue("盗窃");
+        Pair type = new Pair();
+        type.setKey("s8");
+        type.setValue("05");
 
-        Pair caseType = new Pair();
-        caseType.setKey("s8");
-        caseType.setValue("02");
+        Pair year = new Pair();
+        year.setKey("s42");
+        year.setValue(code + "");
 
-        Pair docType = new Pair();
-        docType.setKey("s6");
-        docType.setValue("01");
+        Pair court = new Pair();
+        court.setKey("s45");
+        court.setValue("精神损害");
 
-        Pair trial = new Pair();
-        trial.setKey("s9");
-        trial.setValue("0201");
+        Pair b = new Pair();
+        b.setKey("s6");
+        b.setValue(book);
 
-
-        String pairs = JSON.toJSONString(Lists.newArrayList(datePair, name, caseType, docType, trial));
+        String pairs = JSON.toJSONString(Lists.newArrayList(type, year, court, b));
         log.info("参数={}", pairs);
         params.put("queryCondition", pairs);
         params.put("cfg", "com.lawyee.judge.dc.parse.dto.SearchDataDsoDTO@queryDoc");
@@ -220,14 +234,14 @@ public class DocumentService {
                     detail(docId);
                 }
             }
-            list(pageNum + 1, pageSize);
+            list(pageNum + 1, pageSize, code, book);
         } catch (Exception e) {
             if (response != null) {
                 log.error("body={}", response.body());
             }
             log.error("列表获取出错", e);
             try {
-                TimeUnit.MINUTES.sleep(20);
+                TimeUnit.SECONDS.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -313,7 +327,7 @@ public class DocumentService {
             }
             log.error("详情获取出错", e);
             try {
-                TimeUnit.MINUTES.sleep(20);
+                TimeUnit.SECONDS.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }

@@ -13,6 +13,8 @@ class ReptileApplicationTests {
     @Autowired
     private DocumentService documentService;
     @Autowired
+    private CompensateDocumentService compensateDocumentService;
+    @Autowired
     private PunishService punishService;
 
     @Autowired
@@ -52,6 +54,10 @@ class ReptileApplicationTests {
         updateService.list();
     }
 
+    @Test
+    public void document(){
+        compensateDocumentService.page(1,15);
+    }
 
 
 }
