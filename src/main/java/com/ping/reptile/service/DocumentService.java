@@ -1,6 +1,7 @@
 package com.ping.reptile.service;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSON;
@@ -57,7 +58,8 @@ public class DocumentService {
     private AtomicInteger days = new AtomicInteger(0);
     private List<Dict> areas = new ArrayList<>();
     private LocalDate date = null;
-
+    private int min = 5;
+    private int max = 10;
     private ThreadPoolExecutor executor = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors(),
             Runtime.getRuntime().availableProcessors() * 2,
@@ -102,11 +104,14 @@ public class DocumentService {
         }
         log.info("开始查询日期为[{}]下的数据", date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE));
         list(pageNum, pageSize);
-        days.getAndIncrement();
+        days.getAndAdd(30);
         try {
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
         } catch (InterruptedException ex) {
             ex.printStackTrace();
+        }
+        if (days.get() > 73000) {
+            return;
         }
         page(pageNum, pageSize);
     }
@@ -116,14 +121,11 @@ public class DocumentService {
         String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
         String pageId = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> params = new HashMap<>();
-        String start = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String start = date.minusDays(days.get() + 30).format(DateTimeFormatter.ISO_LOCAL_DATE);
         String end = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         params.put("pageId", pageId);
-        params.put("s1", "盗窃");
-        params.put("s8", "02");
-        params.put("s6", "01");
-        params.put("cprqStart", start);
-        params.put("cprqEnd", end);
+        // params.put("s8", "02");
+        params.put("s21", "家庭暴力");
         params.put("sortFields", "s51:desc");
         params.put("ciphertext", ParamsUtils.cipher());
         params.put("pageNum", pageNum);
@@ -133,29 +135,29 @@ public class DocumentService {
         datePair.setValue(start + " TO " + end);
 
         Pair name = new Pair();
-        name.setKey("s1");
-        name.setValue("盗窃");
+        name.setKey("s45");
+        name.setValue("家庭暴力");
 
-        Pair caseType = new Pair();
+/*        Pair caseType = new Pair();
         caseType.setKey("s8");
-        caseType.setValue("02");
+        caseType.setValue("02");*/
 
         Pair docType = new Pair();
         docType.setKey("s6");
         docType.setValue("01");
 
-        Pair trial = new Pair();
+/*        Pair trial = new Pair();
         trial.setKey("s9");
-        trial.setValue("0201");
+        trial.setValue("0201");*/
 
 
-        String pairs = JSON.toJSONString(Lists.newArrayList(datePair, name, caseType, docType, trial));
+        String pairs = JSON.toJSONString(Lists.newArrayList(datePair, name, docType));
         log.info("参数={}", pairs);
         params.put("queryCondition", pairs);
         params.put("cfg", "com.lawyee.judge.dc.parse.dto.SearchDataDsoDTO@queryDoc");
         params.put("__RequestVerificationToken", ParamsUtils.random(24));
-        params.put("wh", 470);
-        params.put("ww", 1680);
+        params.put("wh", 699);
+        params.put("ww", 1280);
 
         HttpCookie cookie = new HttpCookie("SESSION", config.getToken());
         cookie.setDomain("wenshu.court.gov.cn");
@@ -173,10 +175,12 @@ public class DocumentService {
                     .header("X-Forwarded-For", IpUtils.getIp())
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "zh-CN,zh;q=0.9")
+                    .header("Cache-Control", "no-cache")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                     .header("Host", "wenshu.court.gov.cn")
                     .header("Origin", "https://wenshu.court.gov.cn")
+                    .header("Pragma", "no-cache")
                     .header("Referer", "https://wenshu.court.gov.cn/website/wenshu/181217BMTKHNT2W0/index.html?pageId=" + pageId + "&s8=02")
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
@@ -191,7 +195,7 @@ public class DocumentService {
         } catch (Exception e) {
             log.error("发送列表请求出错", e);
             try {
-                TimeUnit.MINUTES.sleep(20);
+                TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -212,7 +216,7 @@ public class DocumentService {
                 JSONArray jsonArray = object.getJSONObject("queryResult").getJSONArray("resultList");
                 log.info("列表数量={}", jsonArray.size());
                 if (jsonArray.size() == 0) {
-                    TimeUnit.SECONDS.sleep(5);
+                    TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
                     return;
                 }
                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -223,12 +227,16 @@ public class DocumentService {
             }
             list(pageNum + 1, pageSize);
         } catch (Exception e) {
-            if (response != null) {
-                log.error("body={}", response.body());
-            }
-            log.error("列表获取出错", e);
             try {
-                TimeUnit.SECONDS.sleep(5);
+                if (response != null) {
+                    log.error("body={}", response.body());
+                    if (response.body().contains("307 Temporary Redirec")) {
+                        TimeUnit.MINUTES.sleep(10);
+                    }
+                }
+                log.error("列表获取出错", e);
+
+                TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -242,7 +250,7 @@ public class DocumentService {
     public void detail(String docId) {
         HttpResponse response = null;
         try {
-            TimeUnit.SECONDS.sleep(8);
+            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
             Map<String, Object> params = new HashMap<>();
             params.put("docId", docId);
@@ -313,12 +321,15 @@ public class DocumentService {
                 documentMapper.insert(entity);
             }
         } catch (Exception e) {
-            if (response != null) {
-                log.error("body={}", response.body());
-            }
-            log.error("详情获取出错", e);
             try {
-                TimeUnit.SECONDS.sleep(5);
+                if (response != null) {
+                    log.error("body={}", response.body());
+                    if (response.body().contains("307 Temporary Redirect")) {
+                        TimeUnit.MINUTES.sleep(10);
+                    }
+                }
+                log.error("详情获取出错", e);
+                TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -344,7 +355,7 @@ public class DocumentService {
         params.put("ww", 1680);
         HttpResponse response = null;
         try {
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             response = HttpRequest.post(url)
                     .form(params)
                     .timeout(-1)
@@ -386,7 +397,7 @@ public class DocumentService {
             }
             log.error("发送列表请求出错", e);
             try {
-                TimeUnit.MINUTES.sleep(20);
+                TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }

@@ -52,7 +52,7 @@ public class Task {
         boolean tryLock = false;
         try {
             tryLock = docLock.tryLock(2, TimeUnit.SECONDS);
-            documentService.page(1, 100);
+            documentService.page(1, 15);
         } catch (Exception e) {
             log.error("", e);
         } finally {
