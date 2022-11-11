@@ -205,7 +205,7 @@ public class DocumentService {
         } catch (Exception e) {
             log.error("发送列表请求出错", e);
             try {
-                TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
+                TimeUnit.MINUTES.sleep(RandomUtil.randomInt(min, max));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -337,7 +337,7 @@ public class DocumentService {
                 if (response != null) {
                     log.error("body={}", response.body());
                     if (response.body().contains("307 Temporary Redirect")) {
-                        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min,max));
+                        TimeUnit.MINUTES.sleep(RandomUtil.randomInt(min,max));
                     }
                 }
                 log.error("详情获取出错", e);
