@@ -46,4 +46,8 @@ public class ConfigEntity {
 
     @TableField("page_size")
     private Integer pageSize;
+
+
+    @TableField("enable")
+    private Integer enable;
 }

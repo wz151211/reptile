@@ -22,6 +22,7 @@ import com.ping.reptile.utils.ParamsUtils;
 import com.ping.reptile.utils.TripleDES;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -58,8 +59,10 @@ public class DocumentService {
     private AtomicInteger days = new AtomicInteger(0);
     private List<Dict> areas = new ArrayList<>();
     private LocalDate date = null;
-    private int min = 5;
+    private int min = 3;
     private int max = 10;
+
+    private List<ConfigEntity> configList = null;
     private ThreadPoolExecutor executor = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors(),
             Runtime.getRuntime().availableProcessors() * 2,
@@ -90,6 +93,10 @@ public class DocumentService {
         if (config == null) {
             config = configMapper.selectById(properties.getId());
         }
+        if (configList == null) {
+            configList = configMapper.selectList(Wrappers.<ConfigEntity>lambdaQuery().eq(ConfigEntity::getEnable, 1));
+
+        }
         if (pageNum == null) {
             pageNum = config.getPageNum();
         }
@@ -104,7 +111,7 @@ public class DocumentService {
         }
         log.info("开始查询日期为[{}]下的数据", date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE));
         list(pageNum, pageSize);
-        days.getAndAdd(30);
+        days.getAndAdd(15);
         try {
             TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
         } catch (InterruptedException ex) {
@@ -121,7 +128,7 @@ public class DocumentService {
         String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
         String pageId = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> params = new HashMap<>();
-        String start = date.minusDays(days.get() + 30).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String start = date.minusDays(days.get() + 15).format(DateTimeFormatter.ISO_LOCAL_DATE);
         String end = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         params.put("pageId", pageId);
         // params.put("s8", "02");
@@ -159,7 +166,10 @@ public class DocumentService {
         params.put("wh", 699);
         params.put("ww", 1280);
 
-        HttpCookie cookie = new HttpCookie("SESSION", config.getToken());
+        ConfigEntity entity = configList.get(RandomUtil.randomInt(0, configList.size()));
+        log.info("config:{}",entity);
+
+        HttpCookie cookie = new HttpCookie("SESSION", entity.getToken());
         cookie.setDomain("wenshu.court.gov.cn");
         cookie.setPath("/");
         cookie.setHttpOnly(true);
@@ -185,8 +195,8 @@ public class DocumentService {
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
-                    .header("User-Agent", config.getAgent())
-                    .header("sec-ch-ua", config.getChua())
+                    .header("User-Agent", entity.getAgent())
+                //    .header("sec-ch-ua", entity.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -231,7 +241,7 @@ public class DocumentService {
                 if (response != null) {
                     log.error("body={}", response.body());
                     if (response.body().contains("307 Temporary Redirec")) {
-                        TimeUnit.MINUTES.sleep(10);
+                        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min,max));
                     }
                 }
                 log.error("列表获取出错", e);
@@ -260,7 +270,9 @@ public class DocumentService {
             params.put("wh", 425);
             params.put("ww", 1680);
             params.put("cs", 0);
-            HttpCookie cookie = new HttpCookie("SESSION", config.getToken());
+            ConfigEntity configEntity = configList.get(RandomUtil.randomInt(0, configList.size()));
+            log.info("config:{}",configEntity);
+            HttpCookie cookie = new HttpCookie("SESSION", configEntity.getToken());
             cookie.setDomain("wenshu.court.gov.cn");
             cookie.setPath("/");
             cookie.setHttpOnly(true);
@@ -282,8 +294,8 @@ public class DocumentService {
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
-                    .header("User-Agent", config.getAgent())
-                    .header("sec-ch-ua", config.getChua())
+                    .header("User-Agent", configEntity.getAgent())
+              //      .header("sec-ch-ua", configEntity.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -325,7 +337,7 @@ public class DocumentService {
                 if (response != null) {
                     log.error("body={}", response.body());
                     if (response.body().contains("307 Temporary Redirect")) {
-                        TimeUnit.MINUTES.sleep(10);
+                        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min,max));
                     }
                 }
                 log.error("详情获取出错", e);
@@ -372,8 +384,8 @@ public class DocumentService {
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
-                    .header("User-Agent", config.getAgent())
-                    .header("sec-ch-ua", config.getChua())
+                    //  .header("User-Agent", configList.get(index).getAgent())
+                    //  .header("sec-ch-ua", configList.get(index).getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
