@@ -93,10 +93,7 @@ public class DocumentService {
         if (config == null) {
             config = configMapper.selectById(properties.getId());
         }
-        if (configList == null) {
-            configList = configMapper.selectList(Wrappers.<ConfigEntity>lambdaQuery().eq(ConfigEntity::getEnable, 1));
-
-        }
+        configList = configMapper.selectList(Wrappers.<ConfigEntity>lambdaQuery().eq(ConfigEntity::getEnable, properties.getEnable()));
         if (pageNum == null) {
             pageNum = config.getPageNum();
         }
@@ -167,7 +164,7 @@ public class DocumentService {
         params.put("ww", 1280);
 
         ConfigEntity entity = configList.get(RandomUtil.randomInt(0, configList.size()));
-        log.info("config:{}",entity);
+        log.info("config:{}", entity);
 
         HttpCookie cookie = new HttpCookie("SESSION", entity.getToken());
         cookie.setDomain("wenshu.court.gov.cn");
@@ -196,7 +193,7 @@ public class DocumentService {
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", entity.getAgent())
-                //    .header("sec-ch-ua", entity.getChua())
+                    //    .header("sec-ch-ua", entity.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -213,7 +210,7 @@ public class DocumentService {
         try {
             Result result = JSON.parseObject(response.body(), Result.class);
             if (result.getCode() == 9) {
-                config = configMapper.selectById(properties.getId());
+                config = configMapper.selectById(RandomUtil.randomInt(0, configList.size()));
                 log.info("Session已过期");
                 return;
             }
@@ -241,7 +238,7 @@ public class DocumentService {
                 if (response != null) {
                     log.error("body={}", response.body());
                     if (response.body().contains("307 Temporary Redirec")) {
-                        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min,max));
+                        TimeUnit.MINUTES.sleep(RandomUtil.randomInt(min, max));
                     }
                 }
                 log.error("列表获取出错", e);
@@ -271,7 +268,7 @@ public class DocumentService {
             params.put("ww", 1680);
             params.put("cs", 0);
             ConfigEntity configEntity = configList.get(RandomUtil.randomInt(0, configList.size()));
-            log.info("config:{}",configEntity);
+            log.info("config:{}", configEntity);
             HttpCookie cookie = new HttpCookie("SESSION", configEntity.getToken());
             cookie.setDomain("wenshu.court.gov.cn");
             cookie.setPath("/");
@@ -295,7 +292,7 @@ public class DocumentService {
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", configEntity.getAgent())
-              //      .header("sec-ch-ua", configEntity.getChua())
+                    //      .header("sec-ch-ua", configEntity.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -337,7 +334,7 @@ public class DocumentService {
                 if (response != null) {
                     log.error("body={}", response.body());
                     if (response.body().contains("307 Temporary Redirect")) {
-                        TimeUnit.MINUTES.sleep(RandomUtil.randomInt(min,max));
+                        TimeUnit.MINUTES.sleep(RandomUtil.randomInt(min, max));
                     }
                 }
                 log.error("详情获取出错", e);

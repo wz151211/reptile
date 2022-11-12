@@ -15,5 +15,6 @@ import org.springframework.stereotype.Component;
 @Data
 public class CustomProperties {
     private Integer id = 1;
+    private Integer enable = 3;
 
 }

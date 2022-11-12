@@ -22,6 +22,7 @@ spring:
 
 
 custom:
-  id: 4
+  id: 2
+  enable: 2
 server:
   port: 8000
