@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * @Author: W.Z
  * @Date: 2022/8/21 22:27
@@ -33,9 +35,21 @@ public class DocumentEntity {
     @TableField("case_type")
     private String caseType;
 
+    @TableField("cause")
+    private String cause;
+
+    @TableField("trial_proceedings")
+    private String trialProceedings;
+
+    @TableField("doc_type")
+    private String docType;
+
     @TableField("html_content")
     private String htmlContent;
 
     @TableField("json_content")
     private String jsonContent;
+
+    @TableField("create_time")
+    private Date createTime;
 }

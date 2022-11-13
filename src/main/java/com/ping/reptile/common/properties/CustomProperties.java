@@ -16,5 +16,6 @@ import org.springframework.stereotype.Component;
 public class CustomProperties {
     private Integer id = 1;
     private Integer enable = 3;
+    private Integer intervalDays = 10;
 
 }

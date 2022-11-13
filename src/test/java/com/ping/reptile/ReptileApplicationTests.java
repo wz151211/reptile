@@ -27,6 +27,9 @@ class ReptileApplicationTests {
     private PkulawUpdateService updateService;
 
 
+    @Autowired
+    private UpdateDocumentService updateDocumentService;
+
     @Test
     void contextLoads() {
 
@@ -55,8 +58,13 @@ class ReptileApplicationTests {
     }
 
     @Test
-    public void document(){
-        compensateDocumentService.page(1,15);
+    public void document() {
+        compensateDocumentService.page(1, 15);
+    }
+
+    @Test
+    public void updateDocument() {
+        updateDocumentService.update();
     }
 
 

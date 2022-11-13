@@ -39,6 +39,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * @Author: W.Z
@@ -58,6 +61,8 @@ public class DocumentService {
 
     private AtomicInteger days = new AtomicInteger(0);
     private List<Dict> areas = new ArrayList<>();
+    private List<Dict> docTypes = new ArrayList<>();
+    private Map<String, String> docTypeMap = new HashMap<>();
     private LocalDate date = null;
     private int min = 3;
     private int max = 10;
@@ -81,6 +86,13 @@ public class DocumentService {
                     String text = IOUtils.toString(resource.getURI(), StandardCharsets.UTF_8);
                     areas.addAll(JSON.parseArray(text, Dict.class));
                 }
+                if ("docType.txt".equals(resource.getFilename())) {
+                    String text = IOUtils.toString(resource.getURI(), StandardCharsets.UTF_8);
+                    docTypes.addAll(JSON.parseArray(text, Dict.class));
+                    for (Dict docType : docTypes) {
+                        docTypeMap.put(docType.getCode(), docType.getName());
+                    }
+                }
             }
         } catch (
                 IOException e) {
@@ -103,19 +115,16 @@ public class DocumentService {
         if (date == null) {
             date = LocalDate.parse(config.getDocDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
-        if (date.getYear() < 1990) {
+        if (date.minusDays(days.get()).getYear() < 1990) {
             return;
         }
         log.info("开始查询日期为[{}]下的数据", date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE));
         list(pageNum, pageSize);
-        days.getAndAdd(15);
+        days.getAndAdd(properties.getIntervalDays());
         try {
             TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
         } catch (InterruptedException ex) {
             ex.printStackTrace();
-        }
-        if (days.get() > 73000) {
-            return;
         }
         page(pageNum, pageSize);
     }
@@ -125,7 +134,7 @@ public class DocumentService {
         String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
         String pageId = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> params = new HashMap<>();
-        String start = date.minusDays(days.get() + 15).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String start = date.minusDays(days.get() + properties.getIntervalDays()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         String end = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         params.put("pageId", pageId);
         // params.put("s8", "02");
@@ -139,23 +148,37 @@ public class DocumentService {
         datePair.setValue(start + " TO " + end);
 
         Pair name = new Pair();
-        name.setKey("s45");
-        name.setValue("家庭暴力");
+        name.setKey("s1");
+        name.setValue("盗窃");
 
-/*        Pair caseType = new Pair();
+        Pair caseType = new Pair();
         caseType.setKey("s8");
-        caseType.setValue("02");*/
+        caseType.setValue("02");
 
         Pair docType = new Pair();
         docType.setKey("s6");
         docType.setValue("01");
 
-/*        Pair trial = new Pair();
+        Pair trial = new Pair();
         trial.setKey("s9");
-        trial.setValue("0201");*/
+        trial.setValue("0201");
 
 
-        String pairs = JSON.toJSONString(Lists.newArrayList(datePair, name, docType));
+        String pairs = JSON.toJSONString(Lists.newArrayList(datePair, name, caseType, docType, trial));
+
+/*        Pair name = new Pair();
+        name.setKey("s45");
+        name.setValue("家庭暴力");
+
+*//*        Pair caseType = new Pair();
+        caseType.setKey("s8");
+        caseType.setValue("02");*//*
+
+        Pair docType = new Pair();
+        docType.setKey("s6");
+        docType.setValue("01");
+        String pairs = JSON.toJSONString(Lists.newArrayList(datePair, name, docType));*/
+
         log.info("参数={}", pairs);
         params.put("queryCondition", pairs);
         params.put("cfg", "com.lawyee.judge.dc.parse.dto.SearchDataDsoDTO@queryDoc");
@@ -314,6 +337,10 @@ public class DocumentService {
                 String courtName = jsonObject.getString("s2");
                 String refereeDate = jsonObject.getString("s31");
                 String caseType = jsonObject.getString("s8");
+                String trialProceedings = jsonObject.getString("s9");
+                String docType = jsonObject.getString("s6");
+                JSONArray causes = jsonObject.getJSONArray("s11");
+                String cause = causes.stream().map(Object::toString).collect(joining(","));
                 String htmlContent = jsonObject.getString("qwContent");
                 jsonObject.remove("qwContent");
                 String jsonContent = jsonObject.toJSONString();
@@ -325,8 +352,12 @@ public class DocumentService {
                 entity.setCourtName(courtName);
                 entity.setRefereeDate(refereeDate);
                 entity.setCaseType(caseType);
+                entity.setCause(cause);
+                entity.setTrialProceedings(trialProceedings);
+                entity.setDocType(docTypeMap.get(docType));
                 entity.setJsonContent(jsonContent);
                 entity.setHtmlContent(htmlContent);
+                entity.setCreateTime(new Date());
                 documentMapper.insert(entity);
             }
         } catch (Exception e) {

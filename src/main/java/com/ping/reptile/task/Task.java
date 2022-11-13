@@ -2,14 +2,12 @@ package com.ping.reptile.task;
 
 import com.ping.reptile.service.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.ApplicationScope;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -46,6 +44,9 @@ public class Task {
 
     @Autowired
     private PkulawUpdateService updateService;
+
+    @Autowired
+    private UpdateDocumentService updateDocumentService;
 
     @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void document() {
@@ -113,6 +114,21 @@ public class Task {
         try {
             tryLock = tongYongLock.tryLock(2, TimeUnit.SECONDS);
             tongYongPkulawService.page(0, 10);
+        } catch (Exception e) {
+            log.error("", e);
+        } finally {
+            if (tryLock) {
+                tongYongLock.unlock();
+            }
+        }
+    }
+
+  //  @Scheduled(initialDelay = 8 * 1000L, fixedRate = 1000 * 60 * 30L)
+    public void tongYong11() {
+        boolean tryLock = false;
+        try {
+            tryLock = tongYongLock.tryLock(2, TimeUnit.SECONDS);
+            updateDocumentService.update();
         } catch (Exception e) {
             log.error("", e);
         } finally {
