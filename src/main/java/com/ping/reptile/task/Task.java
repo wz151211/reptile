@@ -48,7 +48,7 @@ public class Task {
     @Autowired
     private UpdateDocumentService updateDocumentService;
 
-    @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 30L)
+   // @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void document() {
         boolean tryLock = false;
         try {

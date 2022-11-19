@@ -38,6 +38,18 @@ public class DocumentEntity {
     @TableField("cause")
     private String cause;
 
+    @TableField("party")
+    private String party;
+
+    @TableField("keyword")
+    private String keyword;
+
+    @TableField("judgment_result")
+    private String judgmentResult;
+
+    @TableField("court_considered")
+    private String courtConsidered;
+
     @TableField("trial_proceedings")
     private String trialProceedings;
 

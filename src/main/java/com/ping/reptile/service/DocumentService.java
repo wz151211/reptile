@@ -170,9 +170,9 @@ public class DocumentService {
         name.setKey("s45");
         name.setValue("家庭暴力");
 
-*//*        Pair caseType = new Pair();
+        Pair caseType = new Pair();
         caseType.setKey("s8");
-        caseType.setValue("02");*//*
+        caseType.setValue("02");
 
         Pair docType = new Pair();
         docType.setKey("s6");
@@ -229,6 +229,7 @@ public class DocumentService {
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
+            list(pageNum, pageSize);
         }
         try {
             Result result = JSON.parseObject(response.body(), Result.class);
@@ -270,6 +271,7 @@ public class DocumentService {
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
+            list(pageNum, pageSize);
         } finally {
             if (response != null) {
                 response.close();
@@ -341,6 +343,12 @@ public class DocumentService {
                 String docType = jsonObject.getString("s6");
                 JSONArray causes = jsonObject.getJSONArray("s11");
                 String cause = causes.stream().map(Object::toString).collect(joining(","));
+                JSONArray partys = jsonObject.getJSONArray("s17");
+                String party = partys.stream().map(Object::toString).collect(joining(","));
+                JSONArray keywords = jsonObject.getJSONArray("s45");
+                String keyword = keywords.stream().map(Object::toString).collect(joining(","));
+                String courtConsidered = jsonObject.getString("s26");
+                String judgmentResult = jsonObject.getString("s27");
                 String htmlContent = jsonObject.getString("qwContent");
                 jsonObject.remove("qwContent");
                 String jsonContent = jsonObject.toJSONString();
@@ -352,7 +360,11 @@ public class DocumentService {
                 entity.setCourtName(courtName);
                 entity.setRefereeDate(refereeDate);
                 entity.setCaseType(caseType);
+                entity.setParty(party);
                 entity.setCause(cause);
+                entity.setJudgmentResult(judgmentResult);
+                entity.setKeyword(keyword);
+                entity.setCourtConsidered(courtConsidered);
                 entity.setTrialProceedings(trialProceedings);
                 entity.setDocType(docTypeMap.get(docType));
                 entity.setJsonContent(jsonContent);
@@ -373,6 +385,7 @@ public class DocumentService {
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
+            detail(docId);
         } finally {
             if (response != null) {
                 response.close();

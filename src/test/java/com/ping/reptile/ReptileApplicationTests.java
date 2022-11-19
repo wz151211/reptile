@@ -67,5 +67,11 @@ class ReptileApplicationTests {
         updateDocumentService.update();
     }
 
+    @Test
+    public void updateDocument1() {
+        updateDocumentService.save();
+    }
+
+
 
 }
