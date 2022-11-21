@@ -12,8 +12,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Component
-@Slf4j
 @Async
+@Slf4j
 public class CpwsTask {
 
     private final Lock lock = new ReentrantLock();
@@ -51,7 +51,7 @@ public class CpwsTask {
         }
     }
 
-    @Scheduled(initialDelay = 5 * 1000L, fixedRate = 1000 * 60 * 30L)
+  //  @Scheduled(initialDelay = 5 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void cpws1() {
         boolean tryLock = false;
         try {
@@ -66,7 +66,7 @@ public class CpwsTask {
         }
     }
 
-    @Scheduled(initialDelay = 7 * 1000L, fixedRate = 1000 * 60 * 30L)
+//    @Scheduled(initialDelay = 7 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void cpws2() {
         boolean tryLock = false;
         try {
@@ -81,7 +81,7 @@ public class CpwsTask {
         }
     }
 
-    @Scheduled(initialDelay = 9 * 1000L, fixedRate = 1000 * 60 * 30L)
+ //   @Scheduled(initialDelay = 9 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void cpws3() {
         boolean tryLock = false;
         try {
@@ -96,7 +96,7 @@ public class CpwsTask {
         }
     }
 
-    @Scheduled(initialDelay = 11 * 1000L, fixedRate = 1000 * 60 * 30L)
+//    @Scheduled(initialDelay = 11 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void cpws4() {
         boolean tryLock = false;
         try {
@@ -111,7 +111,7 @@ public class CpwsTask {
         }
     }
 
-    @Scheduled(initialDelay = 13 * 1000L, fixedRate = 1000 * 60 * 30L)
+//    @Scheduled(initialDelay = 13 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void cpws5() {
         boolean tryLock = false;
         try {
@@ -126,7 +126,7 @@ public class CpwsTask {
         }
     }
 
-    @Scheduled(initialDelay = 15 * 1000L, fixedRate = 1000 * 60 * 30L)
+ //   @Scheduled(initialDelay = 15 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void cpws6() {
         boolean tryLock = false;
         try {
@@ -141,7 +141,7 @@ public class CpwsTask {
         }
     }
 
-    @Scheduled(initialDelay = 17 * 1000L, fixedRate = 1000 * 60 * 30L)
+ //   @Scheduled(initialDelay = 17 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void cpws7() {
         boolean tryLock = false;
         try {

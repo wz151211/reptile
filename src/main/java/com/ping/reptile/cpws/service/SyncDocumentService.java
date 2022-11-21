@@ -61,6 +61,8 @@ public class SyncDocumentService {
     @Autowired
     private DocumentMapper documentMapper;
 
+    private int count = 200;
+
     private List<Dict> docTypes = new ArrayList<>();
     private Map<String, String> docTypeMap = new HashMap<>();
 
@@ -95,7 +97,7 @@ public class SyncDocumentService {
                 cpwsMapper.update(null, Wrappers.<CpwsEntity>lambdaUpdate().set(CpwsEntity::getFlag, 1).eq(CpwsEntity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpwsMapper.update(null, Wrappers.<CpwsEntity>lambdaUpdate().set(CpwsEntity::getFlag, 1).eq(CpwsEntity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -114,7 +116,7 @@ public class SyncDocumentService {
                 cpws01Mapper.update(null, Wrappers.<Cpws01Entity>lambdaUpdate().set(Cpws01Entity::getFlag, 1).eq(Cpws01Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws01Mapper.update(null, Wrappers.<Cpws01Entity>lambdaUpdate().set(Cpws01Entity::getFlag, 1).eq(Cpws01Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -133,7 +135,7 @@ public class SyncDocumentService {
                 cpws02Mapper.update(null, Wrappers.<Cpws02Entity>lambdaUpdate().set(Cpws02Entity::getFlag, 1).eq(Cpws02Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws02Mapper.update(null, Wrappers.<Cpws02Entity>lambdaUpdate().set(Cpws02Entity::getFlag, 1).eq(Cpws02Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -152,7 +154,7 @@ public class SyncDocumentService {
                 cpws03Mapper.update(null, Wrappers.<Cpws03Entity>lambdaUpdate().set(Cpws03Entity::getFlag, 1).eq(Cpws03Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws03Mapper.update(null, Wrappers.<Cpws03Entity>lambdaUpdate().set(Cpws03Entity::getFlag, 1).eq(Cpws03Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -171,7 +173,7 @@ public class SyncDocumentService {
                 cpws04Mapper.update(null, Wrappers.<Cpws04Entity>lambdaUpdate().set(Cpws04Entity::getFlag, 1).eq(Cpws04Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws04Mapper.update(null, Wrappers.<Cpws04Entity>lambdaUpdate().set(Cpws04Entity::getFlag, 1).eq(Cpws04Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -190,7 +192,7 @@ public class SyncDocumentService {
                 cpws05Mapper.update(null, Wrappers.<Cpws05Entity>lambdaUpdate().set(Cpws05Entity::getFlag, 1).eq(Cpws05Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws05Mapper.update(null, Wrappers.<Cpws05Entity>lambdaUpdate().set(Cpws05Entity::getFlag, 1).eq(Cpws05Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -228,7 +230,7 @@ public class SyncDocumentService {
                 cpws07Mapper.update(null, Wrappers.<Cpws07Entity>lambdaUpdate().set(Cpws07Entity::getFlag, 1).eq(Cpws07Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws07Mapper.update(null, Wrappers.<Cpws07Entity>lambdaUpdate().set(Cpws07Entity::getFlag, 1).eq(Cpws07Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -247,7 +249,7 @@ public class SyncDocumentService {
                 cpws08Mapper.update(null, Wrappers.<Cpws08Entity>lambdaUpdate().set(Cpws08Entity::getFlag, 1).eq(Cpws08Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws08Mapper.update(null, Wrappers.<Cpws08Entity>lambdaUpdate().set(Cpws08Entity::getFlag, 1).eq(Cpws08Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -266,7 +268,7 @@ public class SyncDocumentService {
                 cpws09Mapper.update(null, Wrappers.<Cpws09Entity>lambdaUpdate().set(Cpws09Entity::getFlag, 1).eq(Cpws09Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws09Mapper.update(null, Wrappers.<Cpws09Entity>lambdaUpdate().set(Cpws09Entity::getFlag, 1).eq(Cpws09Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -285,7 +287,7 @@ public class SyncDocumentService {
                 cpws10Mapper.update(null, Wrappers.<Cpws10Entity>lambdaUpdate().set(Cpws10Entity::getFlag, 1).eq(Cpws10Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws10Mapper.update(null, Wrappers.<Cpws10Entity>lambdaUpdate().set(Cpws10Entity::getFlag, 1).eq(Cpws10Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -293,7 +295,7 @@ public class SyncDocumentService {
     }
 
     public void sync15() {
-        List<Cpws15Entity> entities = cpws15Mapper.selectList(Wrappers.<Cpws15Entity>lambdaQuery().eq(Cpws15Entity::getFlag, 0).last("limit 10000"));
+        List<Cpws15Entity> entities = cpws15Mapper.selectList(Wrappers.<Cpws15Entity>lambdaQuery().eq(Cpws15Entity::getFlag, 0).like(Cpws15Entity::getCourtInfo, "盗窃").last("limit " + count));
         if (entities == null || entities.size() == 0) {
             return;
         }
@@ -304,7 +306,7 @@ public class SyncDocumentService {
                 cpws15Mapper.update(null, Wrappers.<Cpws15Entity>lambdaUpdate().set(Cpws15Entity::getFlag, 1).eq(Cpws15Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws15Mapper.update(null, Wrappers.<Cpws15Entity>lambdaUpdate().set(Cpws15Entity::getFlag, 1).eq(Cpws15Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -323,7 +325,7 @@ public class SyncDocumentService {
                 cpws19Mapper.update(null, Wrappers.<Cpws19Entity>lambdaUpdate().set(Cpws19Entity::getFlag, 1).eq(Cpws19Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws19Mapper.update(null, Wrappers.<Cpws19Entity>lambdaUpdate().set(Cpws19Entity::getFlag, 1).eq(Cpws19Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -342,7 +344,7 @@ public class SyncDocumentService {
                 cpws20Mapper.update(null, Wrappers.<Cpws20Entity>lambdaUpdate().set(Cpws20Entity::getFlag, 1).eq(Cpws20Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws20Mapper.update(null, Wrappers.<Cpws20Entity>lambdaUpdate().set(Cpws20Entity::getFlag, 1).eq(Cpws20Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -361,7 +363,7 @@ public class SyncDocumentService {
                 cpws68Mapper.update(null, Wrappers.<Cpws68Entity>lambdaUpdate().set(Cpws68Entity::getFlag, 1).eq(Cpws68Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws68Mapper.update(null, Wrappers.<Cpws68Entity>lambdaUpdate().set(Cpws68Entity::getFlag, 1).eq(Cpws68Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }
@@ -380,7 +382,7 @@ public class SyncDocumentService {
                 cpws87Mapper.update(null, Wrappers.<Cpws87Entity>lambdaUpdate().set(Cpws87Entity::getFlag, 1).eq(Cpws87Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                    cpws87Mapper.update(null, Wrappers.<Cpws87Entity>lambdaUpdate().set(Cpws87Entity::getFlag, 1).eq(Cpws87Entity::getId, entity.getId()));
                 }
                 e.printStackTrace();
             }

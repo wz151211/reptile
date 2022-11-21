@@ -57,8 +57,8 @@ public class UpdateDocumentService {
     }
 
     public void update() {
-        List<DocumentEntity> entities = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().select(DocumentEntity::getId, DocumentEntity::getJsonContent).isNull(DocumentEntity::getCause).last("limit 10000"));
-        if (entities == null && entities.size() > 0) {
+        List<DocumentEntity> entities = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().select(DocumentEntity::getId, DocumentEntity::getJsonContent).isNull(DocumentEntity::getCourtConsidered).last("limit 1000"));
+        if (entities == null || entities.size() == 0) {
             return;
         }
         for (DocumentEntity entity : entities) {
@@ -66,19 +66,23 @@ public class UpdateDocumentService {
             if (jsonObject == null) {
                 continue;
             }
-            String trialProceedings = jsonObject.getString("s9");
-            String docType = jsonObject.getString("s6");
-            JSONArray causes = jsonObject.getJSONArray("s11");
-            String cause = causes.stream().map(Object::toString).collect(joining(","));
 
-            entity.setCause(cause);
-            entity.setTrialProceedings(trialProceedings);
-            entity.setDocType(docTypeMap.get(docType));
-            entity.setJsonContent(null);
+            JSONArray partys = jsonObject.getJSONArray("s17");
+            String party = partys.stream().map(Object::toString).collect(joining(","));
+            JSONArray keywords = jsonObject.getJSONArray("s45");
+            String keyword = keywords.stream().map(Object::toString).collect(joining(","));
+            String courtConsidered = jsonObject.getString("s26");
+            String judgmentResult = jsonObject.getString("s27");
+            String id = entity.getId();
+            entity = new DocumentEntity();
+            entity.setId(id);
+            entity.setParty(party);
+            entity.setJudgmentResult(judgmentResult);
+            entity.setKeyword(keyword);
+            entity.setCourtConsidered(courtConsidered);
             entity.setCreateTime(new Date());
             documentMapper.updateById(entity);
         }
-        update();
     }
 
 
