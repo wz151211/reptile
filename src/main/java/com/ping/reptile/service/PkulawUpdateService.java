@@ -100,7 +100,7 @@ public class PkulawUpdateService {
         log.info("线程池中任务数量={}", executor.getQueue().size());
         String url = "https://www.pkulaw.com/apy/" + gid + ".html";
         List<HttpCookie> cookies = new ArrayList<>();
-        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", config.getCookie());
+        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid","");
         cookie4.setDomain("www.pkulaw.com");
         cookie4.setPath("/");
         cookie4.setHttpOnly(true);

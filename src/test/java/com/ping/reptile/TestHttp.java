@@ -223,7 +223,7 @@ public class TestHttp {
 
     @Test
     public void test7() {
-        String key = "WLnTC8aFmEfpLQadqdSXe1Ie";
+        String key = "f18QPOPnVxMAdo5QlVC2SU0g";
         //  byte[] bytes = SecureUtil.des(key.getBytes(StandardCharsets.UTF_8)).decrypt(data);
         String date = DateUtil.format(new Date(), "yyyyMMdd");
         //String result = SecureUtil.des().setMode(CipherMode.decrypt).setIv(date.getBytes(StandardCharsets.UTF_8)).decryptStr(data);
@@ -232,7 +232,7 @@ public class TestHttp {
             SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "TripleDES");
 
             IvParameterSpec ivSpec = new IvParameterSpec(date.getBytes(StandardCharsets.UTF_8));
-            File file = new File("/Users/monkey/Desktop/爬虫/详情密文.txt");
+            File file = new File("C:\\Users\\hua-cloud\\Desktop\\密文.txt");
             byte[] ecryptedMessageBytes = Files.readAllBytes(file.toPath());
 
             // String secretMessage = IOUtils.resourceToString(file.getPath(), Charset.forName("UTF-8"));

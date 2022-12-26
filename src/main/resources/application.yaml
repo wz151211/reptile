@@ -3,10 +3,10 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
     #url: jdbc:mysql://172.16.121.77:3306/judgements?useSSL=false&useUnicode=true&characterEncoding=utf-8
-    url: jdbc:mysql://localhost:3306/hy_cpws?useSSL=false&useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://localhost:3306/judgements?useSSL=false&useUnicode=true&characterEncoding=utf-8
     username: root
     #password: '!root'
-    password:
+    password: 123456
     druid:
       initial-size: 30
       min-idle: 1
@@ -20,14 +20,26 @@ spring:
       test-on-return: true
       pool-prepared-statements: true
       max-pool-prepared-statement-per-connection-size: 10
+  application:
+    name: reptile
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
     map-underscore-to-camel-case: true
-
+logging:
+  file:
+    max-history: 30
+    max-size: 10MB
+    name: ./log/${spring.application.name}.log
+  level:
+    cn:
+      com.ping.reptile: info
+    root: info
 custom:
   id: 6
-  enable: 4
+  category: 12
   intervalDays: 10
+  min: 20
+  max: 40
 server:
   port: 8001

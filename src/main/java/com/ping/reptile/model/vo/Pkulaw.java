@@ -1,5 +1,6 @@
 package com.ping.reptile.model.vo;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,7 +18,7 @@ public class Pkulaw {
 
     private Integer pageSize;
 
-    private List<Node> fieldNodes;
+    private List<JSONObject> fieldNodes;
 
     private Map<String, String> clusterFilters ;
 

@@ -111,7 +111,7 @@ public class CasePunishService {
             pageSize = config.getPageSize();
         }
         if (date == null) {
-            date = LocalDate.parse(config.getPunishDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+            date = LocalDate.parse("", DateTimeFormatter.ISO_LOCAL_DATE);
         }
         List<PunishEntity> caseNoList = punishMapper.getCaseNoList();
         for (PunishEntity entity : caseNoList) {

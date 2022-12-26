@@ -103,7 +103,7 @@ public class PunishService {
             pageSize = config.getPageSize();
         }
         if (date == null) {
-            date = LocalDate.parse(config.getPunishDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+          //  date = LocalDate.parse(config.getPunishDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
         for (Dict a : areas) {
             Map<String, Object> params = new HashMap<>();

@@ -85,7 +85,7 @@ public class PkulawService {
     public void list(Integer pageNum, Integer pageSize) {
         String url = "https://www.pkulaw.com/searchingapi/list/advanced/apy";
         if (date == null) {
-            date = LocalDate.parse(config.getPkulawDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+            date = LocalDate.parse("", DateTimeFormatter.ISO_LOCAL_DATE);
         }
         LocalDate start = date.minusDays(days.get());
         LocalDate end = date.minusDays(days.get());
@@ -137,7 +137,7 @@ public class PkulawService {
                 .orderbyExpression("PunishmentDate Desc")
                 .pageIndex(pageNum)
                 .pageSize(pageSize)
-                .fieldNodes(Lists.newArrayList(punishmentDate))
+                .fieldNodes(Lists.newArrayList(JSON.parseObject(JSON.toJSONString(punishmentDate))))
                 .clusterFilters(new HashMap<>())
                 .groupBy(new HashMap<>())
                 .build();
@@ -162,7 +162,7 @@ public class PkulawService {
                     .header("Host", "www.pkulaw.com")
                     .header("Origin", "https://www.pkulaw.com")
                     .header("Referer", "https://www.pkulaw.com/advanced/penalty/")
-                    .header("Authorization", config.getAuthorization())
+                    .header("Authorization", "")
                     .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
                     .header("sec-ch-ua", "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"")
                     .header("sec-ch-ua-mobile", "?0")
@@ -230,7 +230,7 @@ public class PkulawService {
         log.info("线程池中任务数量={}", executor.getQueue().size());
         String url = "https://www.pkulaw.com/apy/" + gid + ".html";
         List<HttpCookie> cookies = new ArrayList<>();
-        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", config.getCookie());
+        HttpCookie cookie4 = new HttpCookie("pkulaw_v6_sessionid", "");
         cookie4.setDomain("www.pkulaw.com");
         cookie4.setPath("/");
         cookie4.setHttpOnly(true);

@@ -3,6 +3,7 @@ package com.ping.reptile.cpws.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.ping.reptile.cpws.entity.*;
 import com.ping.reptile.cpws.mapper.*;
@@ -11,6 +12,10 @@ import com.ping.reptile.model.entity.DocumentEntity;
 import com.ping.reptile.model.vo.Dict;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -98,6 +103,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpwsMapper.update(null, Wrappers.<CpwsEntity>lambdaUpdate().set(CpwsEntity::getFlag, 1).eq(CpwsEntity::getId, entity.getId()));
+                } else {
+                    cpwsMapper.update(null, Wrappers.<CpwsEntity>lambdaUpdate().set(CpwsEntity::getFlag, 4).eq(CpwsEntity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -117,6 +125,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws01Mapper.update(null, Wrappers.<Cpws01Entity>lambdaUpdate().set(Cpws01Entity::getFlag, 1).eq(Cpws01Entity::getId, entity.getId()));
+                } else {
+                    cpws01Mapper.update(null, Wrappers.<Cpws01Entity>lambdaUpdate().set(Cpws01Entity::getFlag, 4).eq(Cpws01Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -136,6 +147,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws02Mapper.update(null, Wrappers.<Cpws02Entity>lambdaUpdate().set(Cpws02Entity::getFlag, 1).eq(Cpws02Entity::getId, entity.getId()));
+                } else {
+                    cpws02Mapper.update(null, Wrappers.<Cpws02Entity>lambdaUpdate().set(Cpws02Entity::getFlag, 4).eq(Cpws02Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -155,6 +169,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws03Mapper.update(null, Wrappers.<Cpws03Entity>lambdaUpdate().set(Cpws03Entity::getFlag, 1).eq(Cpws03Entity::getId, entity.getId()));
+                } else {
+                    cpws03Mapper.update(null, Wrappers.<Cpws03Entity>lambdaUpdate().set(Cpws03Entity::getFlag, 4).eq(Cpws03Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -174,6 +191,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws04Mapper.update(null, Wrappers.<Cpws04Entity>lambdaUpdate().set(Cpws04Entity::getFlag, 1).eq(Cpws04Entity::getId, entity.getId()));
+                } else {
+                    cpws04Mapper.update(null, Wrappers.<Cpws04Entity>lambdaUpdate().set(Cpws04Entity::getFlag, 4).eq(Cpws04Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -193,6 +213,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws05Mapper.update(null, Wrappers.<Cpws05Entity>lambdaUpdate().set(Cpws05Entity::getFlag, 1).eq(Cpws05Entity::getId, entity.getId()));
+                } else {
+                    cpws05Mapper.update(null, Wrappers.<Cpws05Entity>lambdaUpdate().set(Cpws05Entity::getFlag, 4).eq(Cpws05Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -212,6 +235,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 1).eq(Cpws06Entity::getId, entity.getId()));
+                } else {
+                    cpws06Mapper.update(null, Wrappers.<Cpws06Entity>lambdaUpdate().set(Cpws06Entity::getFlag, 4).eq(Cpws06Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -231,6 +257,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws07Mapper.update(null, Wrappers.<Cpws07Entity>lambdaUpdate().set(Cpws07Entity::getFlag, 1).eq(Cpws07Entity::getId, entity.getId()));
+                } else {
+                    cpws07Mapper.update(null, Wrappers.<Cpws07Entity>lambdaUpdate().set(Cpws07Entity::getFlag, 4).eq(Cpws07Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -250,6 +279,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws08Mapper.update(null, Wrappers.<Cpws08Entity>lambdaUpdate().set(Cpws08Entity::getFlag, 1).eq(Cpws08Entity::getId, entity.getId()));
+                } else {
+                    cpws08Mapper.update(null, Wrappers.<Cpws08Entity>lambdaUpdate().set(Cpws08Entity::getFlag, 4).eq(Cpws08Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -269,6 +301,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws09Mapper.update(null, Wrappers.<Cpws09Entity>lambdaUpdate().set(Cpws09Entity::getFlag, 1).eq(Cpws09Entity::getId, entity.getId()));
+                } else {
+                    cpws09Mapper.update(null, Wrappers.<Cpws09Entity>lambdaUpdate().set(Cpws09Entity::getFlag, 4).eq(Cpws09Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -276,7 +311,7 @@ public class SyncDocumentService {
     }
 
     public void sync10() {
-        List<Cpws10Entity> entities = cpws10Mapper.selectList(Wrappers.<Cpws10Entity>lambdaQuery().eq(Cpws10Entity::getFlag, 0).last("limit 10000"));
+        List<Cpws10Entity> entities = cpws10Mapper.selectList(Wrappers.<Cpws10Entity>lambdaQuery().eq(Cpws10Entity::getState, 0).last("limit 10000"));
         if (entities == null || entities.size() == 0) {
             return;
         }
@@ -284,10 +319,13 @@ public class SyncDocumentService {
             DocumentEntity documentEntity = toDocumentEntity(entity);
             try {
                 documentMapper.insert(documentEntity);
-                cpws10Mapper.update(null, Wrappers.<Cpws10Entity>lambdaUpdate().set(Cpws10Entity::getFlag, 1).eq(Cpws10Entity::getId, entity.getId()));
+                cpws10Mapper.update(null, Wrappers.<Cpws10Entity>lambdaUpdate().set(Cpws10Entity::getState, 1).eq(Cpws10Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws10Mapper.update(null, Wrappers.<Cpws10Entity>lambdaUpdate().set(Cpws10Entity::getFlag, 1).eq(Cpws10Entity::getId, entity.getId()));
+                    cpws10Mapper.update(null, Wrappers.<Cpws10Entity>lambdaUpdate().set(Cpws10Entity::getState, 1).eq(Cpws10Entity::getId, entity.getId()));
+                } else {
+                    cpws10Mapper.update(null, Wrappers.<Cpws10Entity>lambdaUpdate().set(Cpws10Entity::getState, 4).eq(Cpws10Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -307,6 +345,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws15Mapper.update(null, Wrappers.<Cpws15Entity>lambdaUpdate().set(Cpws15Entity::getFlag, 1).eq(Cpws15Entity::getId, entity.getId()));
+                } else {
+                    cpws15Mapper.update(null, Wrappers.<Cpws15Entity>lambdaUpdate().set(Cpws15Entity::getFlag, 4).eq(Cpws15Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -326,6 +367,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws19Mapper.update(null, Wrappers.<Cpws19Entity>lambdaUpdate().set(Cpws19Entity::getFlag, 1).eq(Cpws19Entity::getId, entity.getId()));
+                } else {
+                    cpws19Mapper.update(null, Wrappers.<Cpws19Entity>lambdaUpdate().set(Cpws19Entity::getFlag, 4).eq(Cpws19Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -345,6 +389,9 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws20Mapper.update(null, Wrappers.<Cpws20Entity>lambdaUpdate().set(Cpws20Entity::getFlag, 1).eq(Cpws20Entity::getId, entity.getId()));
+                } else {
+                    cpws20Mapper.update(null, Wrappers.<Cpws20Entity>lambdaUpdate().set(Cpws20Entity::getFlag, 4).eq(Cpws20Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -352,7 +399,7 @@ public class SyncDocumentService {
     }
 
     public void sync68() {
-        List<Cpws68Entity> entities = cpws68Mapper.selectList(Wrappers.<Cpws68Entity>lambdaQuery().eq(Cpws68Entity::getFlag, 0).last("limit 10000"));
+        List<Cpws68Entity> entities = cpws68Mapper.selectList(Wrappers.<Cpws68Entity>lambdaQuery().eq(Cpws68Entity::getState, 0).last("limit 10000"));
         if (entities == null || entities.size() == 0) {
             return;
         }
@@ -360,10 +407,13 @@ public class SyncDocumentService {
             DocumentEntity documentEntity = toDocumentEntity(entity);
             try {
                 documentMapper.insert(documentEntity);
-                cpws68Mapper.update(null, Wrappers.<Cpws68Entity>lambdaUpdate().set(Cpws68Entity::getFlag, 1).eq(Cpws68Entity::getId, entity.getId()));
+                cpws68Mapper.update(null, Wrappers.<Cpws68Entity>lambdaUpdate().set(Cpws68Entity::getState, 1).eq(Cpws68Entity::getId, entity.getId()));
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
-                    cpws68Mapper.update(null, Wrappers.<Cpws68Entity>lambdaUpdate().set(Cpws68Entity::getFlag, 1).eq(Cpws68Entity::getId, entity.getId()));
+                    cpws68Mapper.update(null, Wrappers.<Cpws68Entity>lambdaUpdate().set(Cpws68Entity::getState, 1).eq(Cpws68Entity::getId, entity.getId()));
+                } else {
+                    cpws68Mapper.update(null, Wrappers.<Cpws68Entity>lambdaUpdate().set(Cpws68Entity::getState, 4).eq(Cpws68Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
@@ -383,59 +433,141 @@ public class SyncDocumentService {
             } catch (Exception e) {
                 if (e.getMessage().contains("Duplicate")) {
                     cpws87Mapper.update(null, Wrappers.<Cpws87Entity>lambdaUpdate().set(Cpws87Entity::getFlag, 1).eq(Cpws87Entity::getId, entity.getId()));
+                } else {
+                    cpws87Mapper.update(null, Wrappers.<Cpws87Entity>lambdaUpdate().set(Cpws87Entity::getFlag, 4).eq(Cpws87Entity::getId, entity.getId()));
+
                 }
                 e.printStackTrace();
             }
         });
     }
 
-    public DocumentEntity toDocumentEntity(BaseEntity entity) {
-        DocumentEntity documentEntity = new DocumentEntity();
-        documentEntity.setId(entity.getDocId());
-        log.info("案件id={}", entity.getId());
-        if (entity.getCourtInfo().contains("DocInfoVo")) {
-            JSONObject object = JSON.parseObject(entity.getCourtInfo());
-            String htmlCount = object.getJSONObject("DocInfoVo").getString("qwContent");
-            documentEntity.setHtmlContent(htmlCount);
-        } else {
-            JSONObject jsonObject = JSON.parseObject(entity.getCourtInfo());
-            String id = jsonObject.getString("s5");
-            String name = jsonObject.getString("s1");
-            String caseNo = jsonObject.getString("s7");
-            String courtName = jsonObject.getString("s2");
-            String refereeDate = jsonObject.getString("s31");
-            String caseType = jsonObject.getString("s8");
-            String trialProceedings = jsonObject.getString("s9");
-            String docType = jsonObject.getString("s6");
-            JSONArray causes = jsonObject.getJSONArray("s11");
-            String cause = causes.stream().map(Object::toString).collect(joining(","));
-            JSONArray partys = jsonObject.getJSONArray("s17");
-            String party = partys.stream().map(Object::toString).collect(joining(","));
-            JSONArray keywords = jsonObject.getJSONArray("s45");
-            String keyword = keywords.stream().map(Object::toString).collect(joining(","));
-            String courtConsidered = jsonObject.getString("s26");
-            String judgmentResult = jsonObject.getString("s27");
-            String htmlContent = jsonObject.getString("qwContent");
-            jsonObject.remove("qwContent");
-            String jsonContent = jsonObject.toJSONString();
-            log.info("案件名称={}", name);
-            documentEntity.setId(id);
-            documentEntity.setName(name);
-            documentEntity.setCaseNo(caseNo);
-            documentEntity.setCourtName(courtName);
-            documentEntity.setRefereeDate(refereeDate);
-            documentEntity.setCaseType(caseType);
-            documentEntity.setParty(party);
-            documentEntity.setCause(cause);
-            documentEntity.setJudgmentResult(judgmentResult);
-            documentEntity.setKeyword(keyword);
-            documentEntity.setCourtConsidered(courtConsidered);
-            documentEntity.setTrialProceedings(trialProceedings);
-            documentEntity.setDocType(docTypeMap.get(docType));
-            documentEntity.setJsonContent(jsonContent);
-            documentEntity.setHtmlContent(htmlContent);
-            documentEntity.setCreateTime(new Date());
+    public DocumentEntity toDocumentEntity(BaseEntity e) {
+
+        DocumentEntity entity = new DocumentEntity();
+        entity.setId(e.getDocId());
+        log.info("案件id={}", e.getId());
+        JSONObject object = null;
+        object = JSON.parseObject(e.getCourtInfo());
+        if (StringUtils.isNotEmpty(e.getCourtInfo())) {
+            if (e.getCourtInfo().contains("DocInfoVo")) {
+                String html = object.getJSONObject("DocInfoVo").getString("qwContent");
+                if (StringUtils.isNotEmpty(html)) {
+                    Document parse = Jsoup.parse(html);
+                    Elements divs = parse.getElementsByTag("div");
+                    if (divs != null && divs.size() > 0) {
+                        for (int i = 0; i < divs.size(); i++) {
+                            if (i >= 5) {
+                                continue;
+                            }
+                            Element element = divs.get(i);
+                            String text = element.ownText().trim();
+                            if (StringUtils.isNotEmpty(text)) {
+                                if (text.contains("法院")) {
+                                    entity.setCourtName(text);
+                                }
+                                if (text.contains("书")) {
+                                    entity.setCaseType(text.substring(0, 2) + "案件");
+                                    entity.setDocType(text.substring(2));
+                                }
+                                if (text.contains("号")) {
+                                    entity.setCaseNo(text);
+                                }
+                            }
+                        }
+                    }
+                }
+                entity.setCreateTime(new Date());
+                entity.setHtmlContent(html);
+            } else if (e.getCourtInfo().contains("Title")) {
+                String pubDate = object.getString("PubDate");
+                String title = object.getString("Title");
+                String html = object.getString("Html");
+                entity.setName(title);
+                entity.setRefereeDate(pubDate);
+                entity.setHtmlContent(html);
+                entity.setCreateTime(new Date());
+                if (StringUtils.isNotEmpty(html)) {
+                    Document parse = Jsoup.parse(html);
+                    Elements divs = parse.getElementsByTag("div");
+                    if (divs != null && divs.size() > 0) {
+                        for (int i = 0; i < divs.size(); i++) {
+                            if (i >= 4) {
+                                continue;
+                            }
+                            Element element = divs.get(i);
+                            String text = element.ownText().trim();
+                            if (StringUtils.isNotEmpty(text)) {
+                                if (text.contains("法院")) {
+                                    entity.setCourtName(text);
+                                }
+                                if (text.contains("书")) {
+                                    text = text.replace(" ", "");
+                                    entity.setCaseType(text.substring(0, 3) + "案件");
+                                    entity.setDocType(text.substring(3));
+                                }
+                                if (text.contains("号")) {
+                                    entity.setCaseNo(text);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (e.getCourtInfo().contains("qwContent")) {
+                String id = object.getString("s5");
+                if (StringUtils.isNotEmpty(id)) {
+                    String name = object.getString("s1");
+                    String caseNo = object.getString("s7");
+                    String courtName = object.getString("s2");
+                    String refereeDate = object.getString("s31");
+                    String caseType = object.getString("s8");
+                    String trialProceedings = object.getString("s9");
+                    String docType = object.getString("s6");
+                    JSONArray causes = object.getJSONArray("s11");
+                    String cause = null;
+                    if (causes != null) {
+                        cause = causes.stream().map(Object::toString).collect(joining(","));
+                    }
+                    JSONArray partys = object.getJSONArray("s17");
+                    String party = null;
+                    if (partys != null) {
+                        party = partys.stream().map(Object::toString).collect(joining(","));
+                    }
+                    JSONArray keywords = object.getJSONArray("s45");
+                    String keyword = null;
+                    if (keywords != null) {
+                        keyword = keywords.stream().map(Object::toString).collect(joining(","));
+                    }
+                    String courtConsidered = object.getString("s26");
+                    String judgmentResult = object.getString("s27");
+                    String htmlContent = object.getString("qwContent");
+                    object.remove("qwContent");
+                    String jsonContent = object.toJSONString();
+                    log.info("案件名称={}", name);
+                    entity.setId(id);
+                    entity.setName(name);
+                    entity.setCaseNo(caseNo);
+                    entity.setCourtName(courtName);
+                    entity.setRefereeDate(refereeDate);
+                    entity.setCaseType(caseType);
+                    entity.setParty(party);
+                    entity.setCause(cause);
+                    entity.setJudgmentResult(judgmentResult);
+                    entity.setKeyword(keyword);
+                    entity.setCourtConsidered(courtConsidered);
+                    entity.setTrialProceedings(trialProceedings);
+                    entity.setDocType(docTypeMap.get(docType));
+                    entity.setJsonContent(jsonContent);
+                    entity.setHtmlContent(htmlContent);
+                    entity.setCreateTime(new Date());
+                } else {
+                    log.info("案件详情:{}", object);
+                }
+
+            }
+            log.info("案件名称={}", entity.getName());
+            documentMapper.insert(entity);
         }
-        return documentEntity;
+        return entity;
     }
 }

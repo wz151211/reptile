@@ -64,7 +64,7 @@ public class TestPkulaw {
                 .orderbyExpression("PunishmentDate Desc")
                 .pageIndex(0)
                 .pageSize(10)
-                .fieldNodes(Lists.newArrayList(category, punishmentDate))
+                //    .fieldNodes(Lists.newArrayList(category, punishmentDate))
                 .clusterFilters(new HashMap<>())
                 .groupBy(new HashMap<>())
                 .build();

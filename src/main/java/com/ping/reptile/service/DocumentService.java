@@ -8,7 +8,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.google.common.collect.Lists;
 import com.ping.reptile.common.properties.CustomProperties;
 import com.ping.reptile.mapper.ConfigMapper;
 import com.ping.reptile.mapper.DocumentMapper;
@@ -39,7 +38,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 
@@ -64,8 +62,8 @@ public class DocumentService {
     private List<Dict> docTypes = new ArrayList<>();
     private Map<String, String> docTypeMap = new HashMap<>();
     private LocalDate date = null;
-    private int min = 3;
-    private int max = 10;
+    private Integer min;
+    private Integer max;
 
     private List<ConfigEntity> configList = null;
     private ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -105,7 +103,13 @@ public class DocumentService {
         if (config == null) {
             config = configMapper.selectById(properties.getId());
         }
-        configList = configMapper.selectList(Wrappers.<ConfigEntity>lambdaQuery().eq(ConfigEntity::getEnable, properties.getEnable()));
+        if (min == null) {
+            min = properties.getMin();
+        }
+        if (max == null) {
+            max = properties.getMax();
+        }
+        configList = configMapper.selectList(Wrappers.<ConfigEntity>lambdaQuery().eq(ConfigEntity::getCategory, properties.getCategory()));
         if (pageNum == null) {
             pageNum = config.getPageNum();
         }
@@ -137,8 +141,11 @@ public class DocumentService {
         String start = date.minusDays(days.get() + properties.getIntervalDays()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         String end = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         params.put("pageId", pageId);
-        // params.put("s8", "02");
-        params.put("s21", "家庭暴力");
+        if (StringUtils.isEmpty(config.getCaseType())) {
+            params.put("s8", "02");
+        } else {
+            params.put("s8", config.getCaseType());
+        }
         params.put("sortFields", "s51:desc");
         params.put("ciphertext", ParamsUtils.cipher());
         params.put("pageNum", pageNum);
@@ -146,39 +153,9 @@ public class DocumentService {
         Pair datePair = new Pair();
         datePair.setKey("cprq");
         datePair.setValue(start + " TO " + end);
-
-        Pair name = new Pair();
-        name.setKey("s1");
-        name.setValue("盗窃");
-
-        Pair caseType = new Pair();
-        caseType.setKey("s8");
-        caseType.setValue("02");
-
-        Pair docType = new Pair();
-        docType.setKey("s6");
-        docType.setValue("01");
-
-        Pair trial = new Pair();
-        trial.setKey("s9");
-        trial.setValue("0201");
-
-
-        String pairs = JSON.toJSONString(Lists.newArrayList(datePair, name, caseType, docType, trial));
-
-/*        Pair name = new Pair();
-        name.setKey("s45");
-        name.setValue("家庭暴力");
-
-        Pair caseType = new Pair();
-        caseType.setKey("s8");
-        caseType.setValue("02");
-
-        Pair docType = new Pair();
-        docType.setKey("s6");
-        docType.setValue("01");
-        String pairs = JSON.toJSONString(Lists.newArrayList(datePair, name, docType));*/
-
+        List<Pair> array = JSON.parseArray(config.getParams(), Pair.class);
+        array.add(datePair);
+        String pairs = JSON.toJSONString(array);
         log.info("参数={}", pairs);
         params.put("queryCondition", pairs);
         params.put("cfg", "com.lawyee.judge.dc.parse.dto.SearchDataDsoDTO@queryDoc");
@@ -189,7 +166,7 @@ public class DocumentService {
         ConfigEntity entity = configList.get(RandomUtil.randomInt(0, configList.size()));
         log.info("config:{}", entity);
 
-        HttpCookie cookie = new HttpCookie("SESSION", entity.getToken());
+        HttpCookie cookie = new HttpCookie("SESSION", entity.getSession());
         cookie.setDomain("wenshu.court.gov.cn");
         cookie.setPath("/");
         cookie.setHttpOnly(true);
@@ -238,13 +215,18 @@ public class DocumentService {
                 log.info("Session已过期");
                 return;
             }
+            if (result.getCode() == -12) {
+                TimeUnit.HOURS.sleep(6);
+                return;
+            }
             log.info("code={},desc={}", result.getCode(), result.getDescription());
-            log.info(result.getSecretKey());
+            int count = 0;
             if (result.getSuccess()) {
                 String iv = DateUtil.format(new Date(), "yyyyMMdd");
                 String decrypt = TripleDES.decrypt(result.getSecretKey(), result.getResult(), iv);
                 JSONObject object = JSON.parseObject(decrypt);
                 JSONArray jsonArray = object.getJSONObject("queryResult").getJSONArray("resultList");
+                count = jsonArray.size();
                 log.info("列表数量={}", jsonArray.size());
                 if (jsonArray.size() == 0) {
                     TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
@@ -252,11 +234,20 @@ public class DocumentService {
                 }
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject obj = jsonArray.getJSONObject(i);
+                    String caseNo = obj.getString("7");
+                    log.info("案号={}", caseNo);
+               /*     Long existence = documentMapper.selectCount(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getCaseNo, caseNo));
+                    if (existence > 0) {
+                        continue;
+                    }*/
                     String docId = obj.getString("rowkey");
                     detail(docId);
                 }
             }
-            list(pageNum + 1, pageSize);
+            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(2 * max, 4 * max));
+            if (count >= pageSize) {
+                list(pageNum + 1, pageSize);
+            }
         } catch (Exception e) {
             try {
                 if (response != null) {
@@ -294,7 +285,7 @@ public class DocumentService {
             params.put("cs", 0);
             ConfigEntity configEntity = configList.get(RandomUtil.randomInt(0, configList.size()));
             log.info("config:{}", configEntity);
-            HttpCookie cookie = new HttpCookie("SESSION", configEntity.getToken());
+            HttpCookie cookie = new HttpCookie("SESSION", configEntity.getSession());
             cookie.setDomain("wenshu.court.gov.cn");
             cookie.setPath("/");
             cookie.setHttpOnly(true);
@@ -323,7 +314,7 @@ public class DocumentService {
                     .header("X-Requested-With", "XMLHttpRequest")
                     .execute();
             Result result = JSON.parseObject(response.body(), Result.class);
-            log.info("detail--", result.getSecretKey());
+            ;
             log.info("detail--code={},desc={}", result.getCode(), result.getDescription());
             if (result.getSuccess()) {
                 String iv = DateUtil.format(new Date(), "yyyyMMdd");
@@ -334,6 +325,10 @@ public class DocumentService {
                 if (count > 0) {
                     return;
                 }
+                if (StringUtils.isEmpty(id)) {
+                    log.info("案件详情:{}", jsonObject);
+                    return;
+                }
                 String name = jsonObject.getString("s1");
                 String caseNo = jsonObject.getString("s7");
                 String courtName = jsonObject.getString("s2");
@@ -342,11 +337,20 @@ public class DocumentService {
                 String trialProceedings = jsonObject.getString("s9");
                 String docType = jsonObject.getString("s6");
                 JSONArray causes = jsonObject.getJSONArray("s11");
-                String cause = causes.stream().map(Object::toString).collect(joining(","));
+                String cause = null;
+                if (causes != null) {
+                    cause = causes.stream().map(Object::toString).collect(joining(","));
+                }
                 JSONArray partys = jsonObject.getJSONArray("s17");
-                String party = partys.stream().map(Object::toString).collect(joining(","));
+                String party = null;
+                if (partys != null) {
+                    party = partys.stream().map(Object::toString).collect(joining(","));
+                }
                 JSONArray keywords = jsonObject.getJSONArray("s45");
-                String keyword = keywords.stream().map(Object::toString).collect(joining(","));
+                String keyword = null;
+                if (keywords != null) {
+                    keyword = keywords.stream().map(Object::toString).collect(joining(","));
+                }
                 String courtConsidered = jsonObject.getString("s26");
                 String judgmentResult = jsonObject.getString("s27");
                 String htmlContent = jsonObject.getString("qwContent");

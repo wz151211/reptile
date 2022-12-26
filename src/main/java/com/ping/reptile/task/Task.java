@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -20,8 +22,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * @Date: 2022/8/27 09:05
  */
 @Component
-@Slf4j
 @Async
+@Slf4j
 public class Task {
     private final Lock docLock = new ReentrantLock();
     private final Lock punishLock = new ReentrantLock();
@@ -30,6 +32,8 @@ public class Task {
     private final Lock pkulawLock = new ReentrantLock();
 
     private final Lock tongYongLock = new ReentrantLock();
+
+    private final Lock judicialCasesLock = new ReentrantLock();
     @Autowired
     private DocumentService documentService;
     @Autowired
@@ -38,8 +42,6 @@ public class Task {
     private PkulawService pkulawService;
 
     @Autowired
-    private TongYongPkulawService tongYongPkulawService;
-    @Autowired
     private CasePunishService casePunishService;
 
     @Autowired
@@ -47,13 +49,15 @@ public class Task {
 
     @Autowired
     private UpdateDocumentService updateDocumentService;
+    @Autowired
+    private JudicialCasesService judicialCasesService;
 
-   // @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 30L)
+    @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void document() {
         boolean tryLock = false;
         try {
             tryLock = docLock.tryLock(2, TimeUnit.SECONDS);
-            documentService.page(1, 100);
+            documentService.page(1, 15);
         } catch (Exception e) {
             log.error("", e);
         } finally {
@@ -78,7 +82,7 @@ public class Task {
         }
     }
 
- //   @Scheduled(initialDelay = 2 * 1000L, fixedRate = 1000 * 60 * 30L)
+    //   @Scheduled(initialDelay = 2 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void casePunish() {
         boolean tryLock = false;
         try {
@@ -108,23 +112,8 @@ public class Task {
         }
     }
 
-    //@Scheduled(initialDelay = 8 * 1000L, fixedRate = 1000 * 60 * 30L)
-    public void tongYong() {
-        boolean tryLock = false;
-        try {
-            tryLock = tongYongLock.tryLock(2, TimeUnit.SECONDS);
-            tongYongPkulawService.page(0, 10);
-        } catch (Exception e) {
-            log.error("", e);
-        } finally {
-            if (tryLock) {
-                tongYongLock.unlock();
-            }
-        }
-    }
-
-  //  @Scheduled(initialDelay = 8 * 1000L, fixedRate = 1000 * 60 * 30L)
-    public void tongYong11() {
+    //  @Scheduled(initialDelay = 8 * 1000L, fixedRate = 1000 * 60 * 30L)
+    public void documentUpdate() {
         boolean tryLock = false;
         try {
             tryLock = tongYongLock.tryLock(2, TimeUnit.SECONDS);
@@ -160,6 +149,34 @@ public class Task {
         } finally {
             if (tryLock) {
                 tongYongLock.unlock();
+            }
+        }
+    }
+
+    //  @Scheduled(initialDelay = 8 * 1000L, fixedRate = 1000 * 60 * 30L)
+    public void JudicialCases() {
+        boolean tryLock = false;
+        try {
+            tryLock = judicialCasesLock.tryLock(2, TimeUnit.SECONDS);
+            List<String> codes = new ArrayList<>();
+            codes.add("02");
+            codes.add("03");
+            codes.add("04");
+            codes.add("0");
+            codes.add("06");
+            codes.add("07");
+            codes.add("08");
+            codes.add("09");
+            codes.add("10");
+            for (String code : codes) {
+                judicialCasesService.page(0, 50, code);
+            }
+
+        } catch (Exception e) {
+            log.error("", e);
+        } finally {
+            if (tryLock) {
+                judicialCasesLock.unlock();
             }
         }
     }

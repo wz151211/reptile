@@ -7,11 +7,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.util.Date;
-
 @Data
-@TableName(value = "config")
-public class ConfigEntity {
+@TableName(value = "pku_config")
+public class PkuConfigEntity {
 
 
     @TableId(type = IdType.AUTO)
@@ -35,8 +33,8 @@ public class ConfigEntity {
     @TableField("page_size")
     private Integer pageSize;
 
-    @TableField("category")
-    private Integer category;
+    @TableField("grouping")
+    private Integer grouping;
 
     @TableField("case_type")
     private String caseType;
