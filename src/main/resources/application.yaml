@@ -36,10 +36,10 @@ logging:
       com.ping.reptile: info
     root: info
 custom:
-  id: 6
-  category: 12
-  intervalDays: 10
-  min: 20
-  max: 40
+  id: 1
+  category: 1
+  intervalDays: 15
+  min: 7
+  max: 20
 server:
   port: 8001

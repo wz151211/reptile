@@ -64,6 +64,8 @@ public class DocumentService {
     private LocalDate date = null;
     private Integer min;
     private Integer max;
+    private String requestVerificationToken = ParamsUtils.random(24);
+    private AtomicInteger intervalDays = new AtomicInteger(0);
 
     private List<ConfigEntity> configList = null;
     private ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -123,8 +125,9 @@ public class DocumentService {
             return;
         }
         log.info("开始查询日期为[{}]下的数据", date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE));
+        intervalDays.set(RandomUtil.randomInt(properties.getIntervalDays() / 2, properties.getIntervalDays()));
         list(pageNum, pageSize);
-        days.getAndAdd(properties.getIntervalDays());
+        days.getAndAdd(intervalDays.get());
         try {
             TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
         } catch (InterruptedException ex) {
@@ -136,9 +139,9 @@ public class DocumentService {
     public void list(Integer pageNum, Integer pageSize) {
         log.info("pageNum = {}", pageNum);
         String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
-        String pageId = UUID.randomUUID().toString().replace("-", "");
+        String pageId = ParamsUtils.getPageId();
         Map<String, Object> params = new HashMap<>();
-        String start = date.minusDays(days.get() + properties.getIntervalDays()).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String start = date.minusDays(days.get() + intervalDays.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         String end = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         params.put("pageId", pageId);
         if (StringUtils.isEmpty(config.getCaseType())) {
@@ -159,9 +162,10 @@ public class DocumentService {
         log.info("参数={}", pairs);
         params.put("queryCondition", pairs);
         params.put("cfg", "com.lawyee.judge.dc.parse.dto.SearchDataDsoDTO@queryDoc");
-        params.put("__RequestVerificationToken", ParamsUtils.random(24));
+        params.put("__RequestVerificationToken", requestVerificationToken);
         params.put("wh", 699);
         params.put("ww", 1280);
+        params.put("cs", 0);
 
         ConfigEntity entity = configList.get(RandomUtil.randomInt(0, configList.size()));
         log.info("config:{}", entity);
@@ -170,7 +174,7 @@ public class DocumentService {
         cookie.setDomain("wenshu.court.gov.cn");
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        //   cookie.setSecure(false);
         HttpResponse response = null;
         try {
             response = HttpRequest.post(url)
@@ -178,22 +182,22 @@ public class DocumentService {
                     .timeout(-1)
                     .cookie(cookie)
                     .header("Accept", "application/json, text/javascript, */*; q=0.01")
-                    .header("X-Real-IP", IpUtils.getIp())
-                    .header("X-Forwarded-For", IpUtils.getIp())
+                    //  .header("X-Real-IP", IpUtils.getIp())
+                    //   .header("X-Forwarded-For", IpUtils.getIp())
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "zh-CN,zh;q=0.9")
-                    .header("Cache-Control", "no-cache")
                     .header("Connection", "keep-alive")
+                    .header("Content-Length", params.toString().length() + "")
                     .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                     .header("Host", "wenshu.court.gov.cn")
                     .header("Origin", "https://wenshu.court.gov.cn")
                     .header("Pragma", "no-cache")
-                    .header("Referer", "https://wenshu.court.gov.cn/website/wenshu/181217BMTKHNT2W0/index.html?pageId=" + pageId + "&s8=02")
+                    .header("Referer", "https://wenshu.court.gov.cn/website/wenshu/181217BMTKHNT2W0/index.html?pageId=" + pageId + "&s8=" + params.get("s8"))
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", entity.getAgent())
-                    //    .header("sec-ch-ua", entity.getChua())
+                    .header("sec-ch-ua", "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\", \"Google Chrome\";v=\"108\"")
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -209,6 +213,7 @@ public class DocumentService {
             list(pageNum, pageSize);
         }
         try {
+            log.info("列表数据={}", response.body());
             Result result = JSON.parseObject(response.body(), Result.class);
             if (result.getCode() == 9) {
                 config = configMapper.selectById(RandomUtil.randomInt(0, configList.size()));
@@ -236,15 +241,15 @@ public class DocumentService {
                     JSONObject obj = jsonArray.getJSONObject(i);
                     String caseNo = obj.getString("7");
                     log.info("案号={}", caseNo);
-               /*     Long existence = documentMapper.selectCount(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getCaseNo, caseNo));
+                    Long existence = documentMapper.selectCount(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getCaseNo, caseNo));
                     if (existence > 0) {
                         continue;
-                    }*/
+                    }
                     String docId = obj.getString("rowkey");
                     detail(docId);
                 }
             }
-            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(2 * max, 4 * max));
+            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             if (count >= pageSize) {
                 list(pageNum + 1, pageSize);
             }
@@ -280,8 +285,8 @@ public class DocumentService {
             params.put("ciphertext", ParamsUtils.cipher());
             params.put("cfg", "com.lawyee.judge.dc.parse.dto.SearchDataDsoDTO@docInfoSearch");
             params.put("__RequestVerificationToken", ParamsUtils.random(24));
-            params.put("wh", 425);
-            params.put("ww", 1680);
+            params.put("wh", 150);
+            params.put("ww", 1275);
             params.put("cs", 0);
             ConfigEntity configEntity = configList.get(RandomUtil.randomInt(0, configList.size()));
             log.info("config:{}", configEntity);
@@ -295,12 +300,13 @@ public class DocumentService {
                     .timeout(-1)
                     .cookie(cookie)
                     .header("Accept", "application/json, text/javascript, */*; q=0.01")
-                    .header("X-Real-IP", IpUtils.getIp())
-                    .header("X-Forwarded-For", IpUtils.getIp())
+                    //   .header("X-Real-IP", IpUtils.getIp())
+                    //   .header("X-Forwarded-For", IpUtils.getIp())
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "zh-CN,zh;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                    .header("Content-Length", params.toString().length() + "")
                     .header("Host", "wenshu.court.gov.cn")
                     .header("Origin", "https://wenshu.court.gov.cn")
                     .header("Referer", "https://wenshu.court.gov.cn/website/wenshu/181107ANFZ0BXSK4/index.html?docId=" + docId)
@@ -308,11 +314,12 @@ public class DocumentService {
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", configEntity.getAgent())
-                    //      .header("sec-ch-ua", configEntity.getChua())
+                    .header("sec-ch-ua", "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\", \"Google Chrome\";v=\"108\"")
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
                     .execute();
+            log.info("详情数据={}", response.body());
             Result result = JSON.parseObject(response.body(), Result.class);
             ;
             log.info("detail--code={},desc={}", result.getCode(), result.getDescription());
