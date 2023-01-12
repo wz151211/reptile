@@ -2,11 +2,9 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
-    #url: jdbc:mysql://172.16.121.77:3306/judgements?useSSL=false&useUnicode=true&characterEncoding=utf-8
-    url: jdbc:mysql://localhost:3306/judgements?useSSL=false&useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://47.95.218.217:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
     username: root
-    #password: '!root'
-    password: 123456
+    password: document@ABC
     druid:
       initial-size: 30
       min-idle: 1
@@ -36,10 +34,10 @@ logging:
       com.ping.reptile: info
     root: info
 custom:
-  id: 1
+  id: 2
   category: 1
-  intervalDays: 15
-  min: 7
+  intervalDays: 60
+  min: 10
   max: 20
 server:
-  port: 8001
+  port: 10021

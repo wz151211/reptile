@@ -50,7 +50,6 @@ public class HtmlUnitUtils {
             webClient.addRequestHeader("Accept-Encoding", "gzip, deflate, br");
             webClient.addRequestHeader("Accept-Language", "zh-CN,zh;q=0.9");
             webClient.addRequestHeader("Connection", "keep-alive");
-            //¬¬¬    webClient.addRequestHeader("Content-Length", params.toString().length() + "");
             webClient.addRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
             webClient.addRequestHeader("Host", "wenshu.court.gov.cn");
             webClient.addRequestHeader("Origin", "https://wenshu.court.gov.cn");

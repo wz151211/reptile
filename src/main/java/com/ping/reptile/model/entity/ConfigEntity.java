@@ -40,4 +40,7 @@ public class ConfigEntity {
 
     @TableField("case_type")
     private String caseType;
+
+    @TableField("chua")
+    private String chua;
 }

@@ -16,7 +16,6 @@ import com.ping.reptile.model.entity.DocumentEntity;
 import com.ping.reptile.model.vo.Dict;
 import com.ping.reptile.model.vo.Pair;
 import com.ping.reptile.model.vo.Result;
-import com.ping.reptile.utils.IpUtils;
 import com.ping.reptile.utils.ParamsUtils;
 import com.ping.reptile.utils.TripleDES;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +32,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -68,14 +64,6 @@ public class DocumentService {
     private AtomicInteger intervalDays = new AtomicInteger(0);
 
     private List<ConfigEntity> configList = null;
-    private ThreadPoolExecutor executor = new ThreadPoolExecutor(
-            Runtime.getRuntime().availableProcessors(),
-            Runtime.getRuntime().availableProcessors() * 2,
-            30,
-            TimeUnit.MINUTES,
-            new LinkedBlockingQueue<>(),
-            new ThreadPoolExecutor.CallerRunsPolicy());
-
 
     {
         try {
@@ -169,25 +157,34 @@ public class DocumentService {
 
         ConfigEntity entity = configList.get(RandomUtil.randomInt(0, configList.size()));
         log.info("config:{}", entity);
-
-        HttpCookie cookie = new HttpCookie("SESSION", entity.getSession());
-        cookie.setDomain("wenshu.court.gov.cn");
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        //   cookie.setSecure(false);
+        String session = config.getSession();
+        String[] split = session.split(";");
+        List<HttpCookie> cookieList = new ArrayList<>();
+        for (int i = 0; i < split.length; i++) {
+            String s = split[i];
+            int index = s.indexOf("=");
+            String key = s.substring(0, index).trim();
+            String value = s.substring(index + 1).trim();
+            HttpCookie httpCookie = new HttpCookie(key, value);
+            httpCookie.setDomain("wenshu.court.gov.cn");
+            httpCookie.setPath("/");
+            httpCookie.setHttpOnly(true);
+            httpCookie.setSecure(false);
+            cookieList.add(httpCookie);
+        }
         HttpResponse response = null;
         try {
             response = HttpRequest.post(url)
                     .form(params)
                     .timeout(-1)
-                    .cookie(cookie)
+                    .cookie(cookieList)
                     .header("Accept", "application/json, text/javascript, */*; q=0.01")
                     //  .header("X-Real-IP", IpUtils.getIp())
                     //   .header("X-Forwarded-For", IpUtils.getIp())
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "zh-CN,zh;q=0.9")
                     .header("Connection", "keep-alive")
-                    .header("Content-Length", params.toString().length() + "")
+                    .header("Content-Length", (params.toString().length() - params.size() - 1) + "")
                     .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                     .header("Host", "wenshu.court.gov.cn")
                     .header("Origin", "https://wenshu.court.gov.cn")
@@ -197,7 +194,7 @@ public class DocumentService {
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", entity.getAgent())
-                    .header("sec-ch-ua", "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\", \"Google Chrome\";v=\"108\"")
+                    .header("sec-ch-ua", config.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
@@ -213,18 +210,19 @@ public class DocumentService {
             list(pageNum, pageSize);
         }
         try {
-            log.info("列表数据={}", response.body());
+            //     log.info("列表数据={}", response.body());
             Result result = JSON.parseObject(response.body(), Result.class);
+            log.info("code={},desc={}", result.getCode(), result.getDescription());
             if (result.getCode() == 9) {
                 config = configMapper.selectById(RandomUtil.randomInt(0, configList.size()));
                 log.info("Session已过期");
                 return;
             }
             if (result.getCode() == -12) {
+                log.info("账号已冻结");
                 TimeUnit.HOURS.sleep(6);
                 return;
             }
-            log.info("code={},desc={}", result.getCode(), result.getDescription());
             int count = 0;
             if (result.getSuccess()) {
                 String iv = DateUtil.format(new Date(), "yyyyMMdd");
@@ -246,7 +244,8 @@ public class DocumentService {
                         continue;
                     }
                     String docId = obj.getString("rowkey");
-                    detail(docId);
+                    String token = ParamsUtils.random(24);
+                    detail(docId, token);
                 }
             }
             TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
@@ -275,30 +274,44 @@ public class DocumentService {
         }
     }
 
-    public void detail(String docId) {
+    public void detail(String docId, String token) {
         HttpResponse response = null;
         try {
             TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
+            try {
+            //    user(docId, token);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
             Map<String, Object> params = new HashMap<>();
             params.put("docId", docId);
             params.put("ciphertext", ParamsUtils.cipher());
             params.put("cfg", "com.lawyee.judge.dc.parse.dto.SearchDataDsoDTO@docInfoSearch");
-            params.put("__RequestVerificationToken", ParamsUtils.random(24));
-            params.put("wh", 150);
+            params.put("__RequestVerificationToken", token);
+            params.put("wh", 241);
             params.put("ww", 1275);
             params.put("cs", 0);
             ConfigEntity configEntity = configList.get(RandomUtil.randomInt(0, configList.size()));
             log.info("config:{}", configEntity);
-            HttpCookie cookie = new HttpCookie("SESSION", configEntity.getSession());
-            cookie.setDomain("wenshu.court.gov.cn");
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            cookie.setSecure(false);
+            String session = config.getSession();
+            String[] split = session.split(";");
+            List<HttpCookie> cookieList = new ArrayList<>();
+            for (String s : split) {
+                int index = s.indexOf("=");
+                String key = s.substring(0, index).trim();
+                String value = s.substring(index + 1).trim();
+                HttpCookie httpCookie = new HttpCookie(key, value);
+                httpCookie.setDomain("wenshu.court.gov.cn");
+                httpCookie.setPath("/");
+                httpCookie.setHttpOnly(true);
+                httpCookie.setSecure(false);
+                cookieList.add(httpCookie);
+            }
             response = HttpRequest.post(url)
                     .form(params)
                     .timeout(-1)
-                    .cookie(cookie)
+                    .cookie(cookieList)
                     .header("Accept", "application/json, text/javascript, */*; q=0.01")
                     //   .header("X-Real-IP", IpUtils.getIp())
                     //   .header("X-Forwarded-For", IpUtils.getIp())
@@ -306,7 +319,7 @@ public class DocumentService {
                     .header("Accept-Language", "zh-CN,zh;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-                    .header("Content-Length", params.toString().length() + "")
+                    .header("Content-Length", (params.toString().length() - params.size() - 1) + "")
                     .header("Host", "wenshu.court.gov.cn")
                     .header("Origin", "https://wenshu.court.gov.cn")
                     .header("Referer", "https://wenshu.court.gov.cn/website/wenshu/181107ANFZ0BXSK4/index.html?docId=" + docId)
@@ -314,14 +327,13 @@ public class DocumentService {
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
                     .header("User-Agent", configEntity.getAgent())
-                    .header("sec-ch-ua", "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\", \"Google Chrome\";v=\"108\"")
+                    .header("sec-ch-ua", config.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
                     .execute();
-            log.info("详情数据={}", response.body());
+            //      log.info("详情数据={}", response.body());
             Result result = JSON.parseObject(response.body(), Result.class);
-            ;
             log.info("detail--code={},desc={}", result.getCode(), result.getDescription());
             if (result.getSuccess()) {
                 String iv = DateUtil.format(new Date(), "yyyyMMdd");
@@ -396,7 +408,7 @@ public class DocumentService {
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
-            detail(docId);
+            detail(docId, token);
         } finally {
             if (response != null) {
                 response.close();
@@ -406,67 +418,75 @@ public class DocumentService {
     }
 
 
-    public List<Dict> getCourt(String code) {
-        String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
-        String pageId = UUID.randomUUID().toString().replace("-", "");
-        Map<String, Object> params = new HashMap<>();
-        params.put("pageId", pageId);
-        params.put("s8", "02");
-        params.put("parentCode", code);
-        params.put("cfg", "com.lawyee.judge.dc.parse.dto.LoadDicDsoDTO@loadFyByCode");
-        params.put("__RequestVerificationToken", ParamsUtils.random(24));
-        params.put("wh", 470);
-        params.put("ww", 1680);
+    public void user(String docId, String token) {
         HttpResponse response = null;
         try {
-            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
+            String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
+            Map<String, Object> params = new HashMap<>();
+            params.put("docId", docId);
+            params.put("cfg", "com.lawyee.wbsttools.web.parse.dto.AppUserDTO@currentUser");
+            params.put("__RequestVerificationToken", token);
+            params.put("wh", 241);
+            params.put("ww", 1275);
+            params.put("cs", 0);
+            ConfigEntity configEntity = configList.get(RandomUtil.randomInt(0, configList.size()));
+            log.info("config:{}", configEntity);
+            String session = config.getSession();
+            String[] split = session.split(";");
+            List<HttpCookie> cookieList = new ArrayList<>();
+            for (String s : split) {
+                String[] cookie = s.split("=");
+                HttpCookie httpCookie = new HttpCookie(cookie[0], cookie[1]);
+                httpCookie.setDomain("wenshu.court.gov.cn");
+                httpCookie.setPath("/");
+                httpCookie.setHttpOnly(true);
+                httpCookie.setSecure(false);
+                cookieList.add(httpCookie);
+            }
             response = HttpRequest.post(url)
                     .form(params)
                     .timeout(-1)
+                    .cookie(cookieList)
                     .header("Accept", "application/json, text/javascript, */*; q=0.01")
-                    .header("X-Real-IP", IpUtils.getIp())
-                    .header("X-Forwarded-For", IpUtils.getIp())
+                    //   .header("X-Real-IP", IpUtils.getIp())
+                    //   .header("X-Forwarded-For", IpUtils.getIp())
                     .header("Accept-Encoding", "gzip, deflate, br")
                     .header("Accept-Language", "zh-CN,zh;q=0.9")
                     .header("Connection", "keep-alive")
                     .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                    .header("Content-Length", (params.toString().length() - params.size() - 1) + "")
                     .header("Host", "wenshu.court.gov.cn")
                     .header("Origin", "https://wenshu.court.gov.cn")
-                    .header("Referer", "https://wenshu.court.gov.cn/website/wenshu/181217BMTKHNT2W0/index.html?pageId=" + pageId + "&s8=02")
+                    .header("Referer", "https://wenshu.court.gov.cn/website/wenshu/181107ANFZ0BXSK4/index.html?docId=" + docId)
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
-                    //  .header("User-Agent", configList.get(index).getAgent())
-                    //  .header("sec-ch-ua", configList.get(index).getChua())
+                    .header("User-Agent", configEntity.getAgent())
+                    .header("sec-ch-ua", config.getChua())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
                     .header("X-Requested-With", "XMLHttpRequest")
                     .execute();
-
+            //      log.info("详情数据={}", response.body());
             Result result = JSON.parseObject(response.body(), Result.class);
-            JSONObject object = JSON.parseObject(result.getResult());
-            List<Dict> courts = JSON.parseArray(object.getJSONArray("fy").toJSONString(), Dict.class);
-            List<Dict> countList = new CopyOnWriteArrayList<>();
-            if (courts.size() == 0) {
-                return countList;
-            }
-            countList.addAll(courts);
-            for (Dict court : courts) {
-                countList.addAll(getCourt(court.getCode()));
-            }
-            return countList;
         } catch (Exception e) {
-            if (response != null) {
-                log.error("body={}", response.body());
-            }
-            log.error("发送列表请求出错", e);
             try {
+                if (response != null) {
+                    log.error("body={}", response.body());
+                    if (response.body().contains("307 Temporary Redirect")) {
+                        TimeUnit.MINUTES.sleep(RandomUtil.randomInt(min, max));
+                    }
+                }
+                log.error("用户获取出错", e);
                 TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
-        return new ArrayList<Dict>();
-    }
 
+    }
 }
