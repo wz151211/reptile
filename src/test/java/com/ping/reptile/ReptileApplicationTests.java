@@ -1,10 +1,20 @@
 package com.ping.reptile;
 
+import com.ping.reptile.cpws.service.CpwsService;
+import com.ping.reptile.cpws.service.Org;
+import com.ping.reptile.mapper.OrgMapper;
 import com.ping.reptile.service.*;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
 @Slf4j
@@ -27,6 +37,9 @@ class ReptileApplicationTests {
 
     @Autowired
     private UpdateDocumentService updateDocumentService;
+
+    @Autowired
+    private CpwsService cpwsService;
 
     @Test
     void contextLoads() {
@@ -65,6 +78,82 @@ class ReptileApplicationTests {
         updateDocumentService.save();
     }
 
+    @Test
+    public void cpws() {
+        try {
+            cpwsService.login();
+            cpwsService.params();
+            //  cpwsService.page();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Autowired
+    private OrgMapper orgMapper;
+
+    @Test
+    public void testOrg() throws InterruptedException, IOException {
+        String index = "http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2022/";
+        Document document = Jsoup.connect(index + "index.html").get();
+        TimeUnit.SECONDS.sleep(3);
+        for (Element element : document.select(".provincetr a")) {
+            String href = element.attr("href");
+            String provinceName = element.text();
+            String provinceCode = href.substring(0, 2) + "0000000000";
+            Org provice = new Org();
+            provice.setId(provinceCode);
+            provice.setName(provinceName);
+            provice.setProvince(provinceName);
+            provice.setPid("-1");
+            provice.setLevel(1);
+            provice.setPath("/" + provinceCode);
+            System.out.println(provice);
+            orgMapper.insert(provice);
+            Document cityDocument = Jsoup.connect(index + "/" + href).get();
+            TimeUnit.SECONDS.sleep(1);
+            for (Element city : cityDocument.select(".citytr")) {
+                Elements cityList = city.select("a");
+                Element cityCode = cityList.get(0);
+                Element cityName = cityList.get(1);
+                Org cityOrg = new Org();
+                cityOrg.setId(cityCode.text());
+                cityOrg.setName(cityName.text());
+                cityOrg.setPid(provinceCode);
+                cityOrg.setLevel(2);
+                cityOrg.setProvince(provinceName);
+                cityOrg.setCity(cityName.text());
+                cityOrg.setPath("/" + provinceCode + "/" + cityCode.text());
+                System.out.println(cityOrg);
+                orgMapper.insert(cityOrg);
+                String href1 = cityCode.attr("href");
+                Document countyDocument = Jsoup.connect(index + "/" + href1).get();
+                TimeUnit.SECONDS.sleep(1);
+                for (Element county : countyDocument.select(".countytr")) {
+                    Elements select = county.select("a");
+                    if (select == null || select.size() == 0) {
+                        continue;
+                    }
+                    Element countyCode = select.get(0);
+                    Element countyName = select.get(1);
+
+                    Org countyOrg = new Org();
+                    countyOrg.setId(countyCode.text());
+                    countyOrg.setProvince(provinceName);
+                    countyOrg.setCity(cityOrg.getCity());
+                    countyOrg.setCounty(countyName.text());
+                    countyOrg.setName(countyName.text());
+                    countyOrg.setPid(countyCode.text());
+                    countyOrg.setLevel(3);
+                    countyOrg.setPath("/" + provinceCode + "/" + cityOrg.getId() + "/" + countyCode.text());
+                    System.out.println(countyOrg);
+                    orgMapper.insert(countyOrg);
+                }
+
+            }
+
+        }
+    }
 
 
 }

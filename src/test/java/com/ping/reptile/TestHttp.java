@@ -7,12 +7,17 @@ import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.ping.reptile.cpws.service.Org;
 import com.ping.reptile.model.vo.Dict;
 import com.ping.reptile.model.vo.Pair;
 import com.ping.reptile.model.vo.Result;
 import com.ping.reptile.utils.IpUtils;
 import com.ping.reptile.utils.ParamsUtils;
 import com.ping.reptile.utils.TripleDES;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.Cipher;
@@ -212,10 +217,13 @@ public class TestHttp {
 
     @Test
     public void test5() throws IOException {
-        String key = "SPeTWZeCb2cxTCu20Fvb8oSh";
+
         String iv = DateUtil.format(new Date(), "yyyyMMdd");
-        byte[] bytes = Files.readAllBytes(new File("/Users/monkey/Desktop/爬虫/列表密文.txt").toPath());
-        String decrypt = TripleDES.decrypt(key, new String(bytes), iv);
+        byte[] bytes = Files.readAllBytes(new File("D:\\请求数据\\list.txt").toPath());
+        JSONObject object = JSON.parseObject(new String(bytes));
+        String key = object.getString("secretKey");
+        String content = object.getString("result");
+        String decrypt = TripleDES.decrypt(key, content, iv);
         System.out.println(decrypt);
 
     }
@@ -379,6 +387,62 @@ public class TestHttp {
             }
         }
         return null;
+    }
+
+
+    @Test
+    public void testCode() throws IOException, InterruptedException {
+        String index = "http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2022/";
+        Document document = Jsoup.connect(index + "index.html").get();
+        TimeUnit.SECONDS.sleep(3);
+        for (Element element : document.select(".provincetr a")) {
+            String href = element.attr("href");
+            String provinceName = element.text();
+            String provinceCode = href.substring(0, 2) + "0000000000";
+            Org provice = new Org();
+            provice.setId(provinceCode);
+            provice.setName(provinceName);
+            provice.setPid("-1");
+            provice.setLevel(1);
+            provice.setPath("/" + provinceCode);
+            System.out.println(provice);
+            Document cityDocument = Jsoup.connect(index + "/" + href).get();
+            TimeUnit.SECONDS.sleep(3);
+            for (Element city : cityDocument.select(".citytr")) {
+                Elements cityList = city.select("a");
+                Element cityCode = cityList.get(0);
+                Element cityName = cityList.get(1);
+                Org cityOrg = new Org();
+                cityOrg.setId(cityCode.text());
+                cityOrg.setName(cityName.text());
+                cityOrg.setPid(provinceCode);
+                cityOrg.setLevel(2);
+                cityOrg.setPath("/" + provinceCode + "/" + cityCode.text());
+                System.out.println(cityOrg);
+                String href1 = cityCode.attr("href");
+                Document countyDocument = Jsoup.connect(index + "/" + href1).get();
+                TimeUnit.SECONDS.sleep(3);
+                for (Element county : countyDocument.select(".countytr")) {
+                    Elements select = county.select("a");
+                    if (select == null || select.size() == 0) {
+                        continue;
+                    }
+                    Element countyCode = select.get(0);
+                    Element countyName = select.get(1);
+
+                    Org countyOrg = new Org();
+                    countyOrg.setId(countyCode.text());
+                    countyOrg.setName(countyName.text());
+                    countyOrg.setPid(countyCode.text());
+                    countyOrg.setLevel(3);
+                    countyOrg.setPath("/" + provinceCode + "/" + cityOrg.getId() + "/" + countyCode.text());
+                    System.out.println(countyOrg);
+                }
+
+            }
+
+        }
+
     }
 
 }

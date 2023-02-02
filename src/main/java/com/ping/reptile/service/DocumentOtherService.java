@@ -20,7 +20,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@Service
+//@Service
 public class DocumentOtherService {
     private String requestVerificationToken = ParamsUtils.random(24);
     @Autowired

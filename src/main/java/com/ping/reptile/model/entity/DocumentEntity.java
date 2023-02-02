@@ -64,4 +64,13 @@ public class DocumentEntity {
 
     @TableField("create_time")
     private Date createTime;
+
+    @TableField("province")
+    private String province;
+
+    @TableField("city")
+    private String city;
+
+    @TableField("county")
+    private String county;
 }
