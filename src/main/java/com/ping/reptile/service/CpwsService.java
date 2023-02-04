@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.ping.reptile.common.properties.CustomProperties;
 import com.ping.reptile.kit.DocumentKit;
 import com.ping.reptile.mapper.DocumentMapper;
 import com.ping.reptile.model.entity.DocumentEntity;
@@ -45,11 +46,11 @@ public class CpwsService {
     private DocumentMapper documentMapper;
     @Autowired
     private AreaService areaService;
+    @Autowired
+    private CustomProperties properties;
+
     private ChromeDriver driver = null;
-    private DevTools devTools = null;
     private WebDriverWait webDriverWait = null;
-    private Actions actions = null;
-    private int interval = 10;
     private AtomicInteger days = new AtomicInteger(0);
     private LocalDate date = LocalDate.of(2020, 10, 03);
     private final String indexUrl = "https://wenshu.court.gov.cn/";
@@ -73,8 +74,6 @@ public class CpwsService {
         //   devTools = driver.getDevTools();
         //   devTools.createSession();
         webDriverWait = new WebDriverWait(driver, Duration.ofMillis(60 * 1000));
-        actions = new Actions(driver);
-
 
     }
 
@@ -124,7 +123,7 @@ public class CpwsService {
         driver.switchTo().frame(driver.findElement(By.id("contentIframe")));
         WebElement account = driver.findElement(By.name("username"));
         account.clear();
-        account.sendKeys("17008375707");
+        account.sendKeys(properties.getAccount());
         WebElement password = driver.findElement(By.name("password"));
         password.clear();
         password.sendKeys("123456Aa");
@@ -166,7 +165,7 @@ public class CpwsService {
         String trialProceedingsJs = "var temp = document.getElementById('s9');temp.setAttribute('data-val','0301');temp.setAttribute('data-level','1');temp.innerText='民事一审';";
         driver.executeScript(trialProceedingsJs);
 
-        String start = date.minusDays(days.get() + interval).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String start = date.minusDays(days.get() + properties.getIntervalDays()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         String end = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
         days.getAndIncrement();
 
@@ -206,7 +205,7 @@ public class CpwsService {
     }
 
     public void page() throws InterruptedException {
-        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(5, 10));
+        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(properties.getMin(), properties.getMax()));
         //  driver.findElement(By.xpath("//*[@id=\"_view_1545184311000\"]/div[2]/div[2]/a")).click();
         try {
             webDriverWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(By.className("caseName"), 0));
@@ -214,12 +213,12 @@ public class CpwsService {
             e.printStackTrace();
             List<WebElement> pageButtons = driver.findElements(By.className("pageButton"));
             if (pageButtons == null || pageButtons.size() == 0) {
-                days.getAndAdd(interval);
+                days.getAndAdd(properties.getIntervalDays());
             } else {
                 WebElement nextPage = pageButtons.get(pageButtons.size() - 1);
                 String attribute = nextPage.getAttribute("class");
                 if (attribute.contains("disabled")) {
-                    days.getAndAdd(interval);
+                    days.getAndAdd(properties.getIntervalDays());
                 }
             }
 
@@ -234,7 +233,7 @@ public class CpwsService {
         }
         List<WebElement> pageButtons = driver.findElements(By.className("pageButton"));
         if (pageButtons == null || pageButtons.size() == 0) {
-            days.getAndAdd(interval);
+            days.getAndAdd(properties.getIntervalDays());
             params();
             return;
 
@@ -242,7 +241,7 @@ public class CpwsService {
         WebElement nextPage = pageButtons.get(pageButtons.size() - 1);
         String attribute = nextPage.getAttribute("class");
         if (attribute.contains("disabled")) {
-            days.getAndAdd(interval);
+            days.getAndAdd(properties.getIntervalDays());
             params();
         } else {
             nextPage.click();
@@ -253,7 +252,7 @@ public class CpwsService {
     }
 
     public void details(String docId) throws InterruptedException {
-        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(5,10));
+        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(properties.getMin(), properties.getMax()));
         driver.switchTo().newWindow(WindowType.TAB);
         DevTools tools = driver.getDevTools();
         tools.createSession();

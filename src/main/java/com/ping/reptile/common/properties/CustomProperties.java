@@ -17,7 +17,7 @@ public class CustomProperties {
     private Integer id = 1;
     private Integer category = 3;
     private Integer intervalDays = 10;
-
+    private String account;
     private Integer min = 10;
 
     private Integer max = 30;

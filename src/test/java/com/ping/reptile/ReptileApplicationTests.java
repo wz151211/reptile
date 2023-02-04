@@ -81,8 +81,8 @@ class ReptileApplicationTests {
     @Test
     public void cpws() {
         try {
-            //  cpwsService.login();
-            cpwsService.params();
+            cpwsService.login();
+            //cpwsService.params();
             //  cpwsService.page();
         } catch (InterruptedException e) {
             e.printStackTrace();

@@ -38,9 +38,9 @@ logging:
     org.openqa : warn
 custom:
   id: 1
-  category: 2
-  intervalDays: 60
-  min: 15
-  max: 25
+  account: 17008378717
+  intervalDays: 11
+  min: 5
+  max: 10
 server:
   port: 10021
