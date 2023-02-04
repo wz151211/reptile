@@ -1,8 +1,8 @@
 package com.ping.reptile;
 
-import com.ping.reptile.cpws.service.CpwsService;
-import com.ping.reptile.cpws.service.Org;
-import com.ping.reptile.mapper.OrgMapper;
+import com.ping.reptile.service.CpwsService;
+import com.ping.reptile.mapper.AreaMapper;
+import com.ping.reptile.model.entity.AreaEntity;
 import com.ping.reptile.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -81,7 +81,7 @@ class ReptileApplicationTests {
     @Test
     public void cpws() {
         try {
-            cpwsService.login();
+            //  cpwsService.login();
             cpwsService.params();
             //  cpwsService.page();
         } catch (InterruptedException e) {
@@ -90,7 +90,7 @@ class ReptileApplicationTests {
     }
 
     @Autowired
-    private OrgMapper orgMapper;
+    private AreaMapper orgMapper;
 
     @Test
     public void testOrg() throws InterruptedException, IOException {
@@ -101,7 +101,7 @@ class ReptileApplicationTests {
             String href = element.attr("href");
             String provinceName = element.text();
             String provinceCode = href.substring(0, 2) + "0000000000";
-            Org provice = new Org();
+            AreaEntity provice = new AreaEntity();
             provice.setId(provinceCode);
             provice.setName(provinceName);
             provice.setProvince(provinceName);
@@ -116,7 +116,7 @@ class ReptileApplicationTests {
                 Elements cityList = city.select("a");
                 Element cityCode = cityList.get(0);
                 Element cityName = cityList.get(1);
-                Org cityOrg = new Org();
+                AreaEntity cityOrg = new AreaEntity();
                 cityOrg.setId(cityCode.text());
                 cityOrg.setName(cityName.text());
                 cityOrg.setPid(provinceCode);
@@ -137,7 +137,7 @@ class ReptileApplicationTests {
                     Element countyCode = select.get(0);
                     Element countyName = select.get(1);
 
-                    Org countyOrg = new Org();
+                    AreaEntity countyOrg = new AreaEntity();
                     countyOrg.setId(countyCode.text());
                     countyOrg.setProvince(provinceName);
                     countyOrg.setCity(cityOrg.getCity());

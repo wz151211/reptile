@@ -1,11 +1,10 @@
-package com.ping.reptile.cpws.service;
+package com.ping.reptile.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.ping.reptile.cpws.kit.DocumentKit;
+import com.ping.reptile.kit.DocumentKit;
 import com.ping.reptile.mapper.DocumentMapper;
 import com.ping.reptile.model.entity.DocumentEntity;
 import com.ping.reptile.model.vo.Dict;
@@ -14,16 +13,14 @@ import com.ping.reptile.utils.TripleDES;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.By;
-import org.openqa.selenium.PageLoadStrategy;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.WindowType;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.v109.network.Network;
 import org.openqa.selenium.devtools.v109.network.model.Response;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -41,20 +38,20 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.stream.Collectors.joining;
-
 @Service
 @Slf4j
 public class CpwsService {
     @Autowired
     private DocumentMapper documentMapper;
+    @Autowired
+    private AreaService areaService;
     private ChromeDriver driver = null;
     private DevTools devTools = null;
     private WebDriverWait webDriverWait = null;
     private Actions actions = null;
     private int interval = 10;
     private AtomicInteger days = new AtomicInteger(0);
-    private LocalDate date = LocalDate.of(2021, 10, 01);
+    private LocalDate date = LocalDate.of(2020, 10, 03);
     private final String indexUrl = "https://wenshu.court.gov.cn/";
 
     private List<Dict> areas = new ArrayList<>();
@@ -127,7 +124,7 @@ public class CpwsService {
         driver.switchTo().frame(driver.findElement(By.id("contentIframe")));
         WebElement account = driver.findElement(By.name("username"));
         account.clear();
-        account.sendKeys("17008379380");
+        account.sendKeys("17008375707");
         WebElement password = driver.findElement(By.name("password"));
         password.clear();
         password.sendKeys("123456Aa");
@@ -154,9 +151,7 @@ public class CpwsService {
         //全文搜索
         String keyJs = "var temp = document.getElementById('qbValue');temp.value='家庭暴力'";
         driver.executeScript(keyJs);
-/*        WebElement qbValue = driver.findElement(By.id("qbValue"));
-        String text = qbValue.getText();
-        qbValue.sendKeys("家庭暴力");*/
+
         String qbTypeJs = "var temp = document.getElementById('qbType');temp.setAttribute('data-val','5');temp.innerText='事实';";
         driver.executeScript(qbTypeJs);
         //案件类型
@@ -173,6 +168,7 @@ public class CpwsService {
 
         String start = date.minusDays(days.get() + interval).format(DateTimeFormatter.ISO_LOCAL_DATE);
         String end = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        days.getAndIncrement();
 
         String startJs = "var temp = document.getElementById('cprqStart');temp.value='" + start + "'";
         driver.executeScript(startJs);
@@ -257,7 +253,7 @@ public class CpwsService {
     }
 
     public void details(String docId) throws InterruptedException {
-        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(5, 10));
+        TimeUnit.SECONDS.sleep(RandomUtil.randomInt(5,10));
         driver.switchTo().newWindow(WindowType.TAB);
         DevTools tools = driver.getDevTools();
         tools.createSession();
@@ -282,7 +278,7 @@ public class CpwsService {
                         }
                         DocumentEntity entity = DocumentKit.toEntity(jsonObject);
                         entity.setDocType(docTypeMap.get(docType));
-
+                        areaService.convert(entity);
                         try {
                             documentMapper.insert(entity);
                         } catch (Exception e) {

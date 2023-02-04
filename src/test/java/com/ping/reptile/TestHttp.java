@@ -7,7 +7,7 @@ import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.ping.reptile.cpws.service.Org;
+import com.ping.reptile.model.entity.AreaEntity;
 import com.ping.reptile.model.vo.Dict;
 import com.ping.reptile.model.vo.Pair;
 import com.ping.reptile.model.vo.Result;
@@ -399,7 +399,7 @@ public class TestHttp {
             String href = element.attr("href");
             String provinceName = element.text();
             String provinceCode = href.substring(0, 2) + "0000000000";
-            Org provice = new Org();
+            AreaEntity provice = new AreaEntity();
             provice.setId(provinceCode);
             provice.setName(provinceName);
             provice.setPid("-1");
@@ -412,7 +412,7 @@ public class TestHttp {
                 Elements cityList = city.select("a");
                 Element cityCode = cityList.get(0);
                 Element cityName = cityList.get(1);
-                Org cityOrg = new Org();
+                AreaEntity cityOrg = new AreaEntity();
                 cityOrg.setId(cityCode.text());
                 cityOrg.setName(cityName.text());
                 cityOrg.setPid(provinceCode);
@@ -430,7 +430,7 @@ public class TestHttp {
                     Element countyCode = select.get(0);
                     Element countyName = select.get(1);
 
-                    Org countyOrg = new Org();
+                    AreaEntity countyOrg = new AreaEntity();
                     countyOrg.setId(countyCode.text());
                     countyOrg.setName(countyName.text());
                     countyOrg.setPid(countyCode.text());

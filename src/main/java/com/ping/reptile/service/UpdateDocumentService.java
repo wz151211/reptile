@@ -34,6 +34,8 @@ public class UpdateDocumentService {
 
     @Autowired
     private DocumentMapper documentMapper;
+    @Autowired
+    private AreaService areaService;
     private List<Dict> docTypes = new ArrayList<>();
     private Map<String, String> docTypeMap = new HashMap<>();
 
@@ -57,62 +59,25 @@ public class UpdateDocumentService {
     }
 
     public void update() {
-        List<DocumentEntity> entities = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().select(DocumentEntity::getId, DocumentEntity::getHtmlContent).isNull(DocumentEntity::getCaseNo).last("limit 1000"));
+        List<DocumentEntity> entities = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery());
         if (entities == null || entities.size() == 0) {
             return;
         }
-        entities.parallelStream().forEach(e -> {
-            if (StringUtils.isNotEmpty(e.getHtmlContent())) {
-                String html = e.getHtmlContent();
-                DocumentEntity entity = new DocumentEntity();
-                if (StringUtils.isNotEmpty(html)) {
-                    Document parse = Jsoup.parse(html);
-                    Elements divs = parse.getElementsByTag("div");
-                    if (divs != null && divs.size() > 0) {
-                        for (int i = 0; i < divs.size(); i++) {
-                            if (i >= 4) {
-                                continue;
-                            }
-                            Element element = divs.get(i);
-                            String text = element.ownText().trim();
-                            if (StringUtils.isNotEmpty(text)) {
-                                if (text.contains("法院")) {
-                                    entity.setCourtName(text);
-                                }
-                                if (text.contains("书")) {
-                                    text = text.replace(" ", "");
-                                    entity.setCaseType(text.substring(0, 2) + "案件");
-                                    entity.setDocType(text.substring(2));
-                                }
-                                if (text.contains("号")) {
-                                    entity.setCaseNo(text);
-                                }
-                            }
-                        }
-                    }
-                }
-                entity.setCreateTime(new Date());
-                entity.setHtmlContent(html);
- /*           JSONArray partys = jsonObject.getJSONArray("s17");
-            String party = partys.stream().map(Object::toString).collect(joining(","));
-            JSONArray keywords = jsonObject.getJSONArray("s45");
-            String keyword = keywords.stream().map(Object::toString).collect(joining(","));
-            String courtConsidered = jsonObject.getString("s26");
-            String judgmentResult = jsonObject.getString("s27");*/
-                entity.setId(e.getId());
-//            entity.setParty(party);
-//            entity.setJudgmentResult(judgmentResult);
-//            entity.setKeyword(keyword);
-//            entity.setCourtConsidered(courtConsidered);
-//            entity.setCreateTime(new Date());
-                try {
-                    documentMapper.updateById(entity);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    log.info("entity={}", entity);
-                }
+        for (DocumentEntity e : entities) {
+            log.info("no={},court={}", e.getCaseNo(),e.getCourtName());
+            DocumentEntity entity = new DocumentEntity();
+            areaService.convert(e);
+            entity.setProvince(e.getProvince());
+            entity.setCity(e.getCity());
+            entity.setCounty(e.getCounty());
+            entity.setId(e.getId());
+            try {
+                documentMapper.updateById(entity);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                log.info("entity={}", entity);
             }
-        });
+        }
     }
 
 

@@ -1,4 +1,4 @@
-package com.ping.reptile.cpws.kit;
+package com.ping.reptile.kit;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
