@@ -12,7 +12,7 @@
     <!-- 应用名称 -->
     <springProperty scope="context" name="spring.application.name" source="spring.application.name" defaultValue="unknown"/>
     <!-- 日志根路径 -->
-    <springProperty scope="context" name="log.root.path" source="logging.path" defaultValue="${user.home}/logs/"/>
+    <springProperty scope="context" name="log.root.path" source="logging.path" defaultValue="./logs/"/>
     <!-- 日志完整路径 -->
     <springProperty scope="context" name="log.path" source="log.root.path" defaultValue="${log.root.path}/${spring.application.name}"/>
     <!-- 应用端口 -->

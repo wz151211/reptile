@@ -37,10 +37,6 @@ logging:
     org.asynchttpclient : info
     org.openqa : warn
 custom:
-  id: 1
-  account: 17008378717
-  intervalDays: 11
-  min: 5
-  max: 10
+  id: 2
 server:
   port: 10021
