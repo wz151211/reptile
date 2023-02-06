@@ -8,6 +8,7 @@ import com.ping.reptile.common.properties.CustomProperties;
 import com.ping.reptile.kit.DocumentKit;
 import com.ping.reptile.mapper.AccountMapper;
 import com.ping.reptile.mapper.ConfigTempMapper;
+import com.ping.reptile.mapper.CourtMapper;
 import com.ping.reptile.mapper.DocumentMapper;
 import com.ping.reptile.model.entity.ConfigTempEntity;
 import com.ping.reptile.model.entity.DocumentEntity;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +56,9 @@ public class CpwsService {
     private ConfigTempMapper configTempMapper;
     @Autowired
     private AccountMapper accountMapper;
+
+    @Autowired
+    private CourtMapper courtMapper;
 
     private String account;
     private ChromeDriver driver = null;
@@ -76,7 +81,7 @@ public class CpwsService {
         options.addArguments("--no-sandbox");
         //  options.setExperimentalOption("excludeSwitches", "enable-automation");
         options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-        //  options.addArguments("--disable-blink-features=AutomationControlled");
+        options.addArguments("--disable-blink-features=AutomationControlled");
         driver = new ChromeDriver(options);
         //  options.addArguments("--window-size=1920,1080");
         //   devTools = driver.getDevTools();
@@ -233,8 +238,16 @@ public class CpwsService {
     }
 
     public void page() throws InterruptedException {
-        TimeUnit.SECONDS.sleep(6);
+        LocalDateTime start = LocalDateTime.now();
+        if ((start.getMinute() <= 2) || (start.getMinute() >= 30 && start.getMinute() <= 31)) {
+            TimeUnit.MINUTES.sleep(3);
+        }
         try {
+            TimeUnit.SECONDS.sleep(6);
+            String text = driver.findElement(By.className("fr con_right")).findElement(By.tagName("span")).getText();
+            if (Integer.parseInt(text) > 600) {
+
+            }
             WebElement container = driver.findElement(By.className("container"));
             if (container.getText().contains("账号存在违规行为")) {
                 try {
@@ -325,6 +338,10 @@ public class CpwsService {
         }
 
         try {
+            LocalDateTime start = LocalDateTime.now();
+            if ((start.getMinute() <= 1) || (start.getMinute() >= 30 && start.getMinute() <= 31)) {
+                TimeUnit.MINUTES.sleep(3);
+            }
             driver.switchTo().newWindow(WindowType.TAB);
             DevTools tools = driver.getDevTools();
             tools.createSession();

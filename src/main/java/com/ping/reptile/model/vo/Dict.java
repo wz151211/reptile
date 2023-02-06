@@ -8,8 +8,10 @@ import lombok.Data;
  */
 @Data
 public class Dict {
-
+    private Integer id;
+    private String parentid;
     private String code;
 
     private String name;
+    private String province;
 }

@@ -7,18 +7,22 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName(value = "cpws01")
+@TableName(value = "court")
 public class CourtEntity {
 
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    @TableField("docId")
-    private String docId;
+    @TableField("parent_id")
+    private String parentId;
 
-    @TableField("CourtInfo")
-    private String courtInfo;
+    @TableField("name")
+    private String name;
 
-    @TableField("flag")
-    private Integer flag;
+    @TableField("code")
+    private String code;
+
+    @TableField("province")
+    private String province;
+
 }

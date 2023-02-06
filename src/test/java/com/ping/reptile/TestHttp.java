@@ -6,11 +6,13 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.collect.Lists;
 import com.ping.reptile.model.entity.AreaEntity;
 import com.ping.reptile.model.vo.Dict;
 import com.ping.reptile.model.vo.Pair;
 import com.ping.reptile.model.vo.Result;
+import com.ping.reptile.utils.HtmlUnitUtils;
 import com.ping.reptile.utils.IpUtils;
 import com.ping.reptile.utils.ParamsUtils;
 import com.ping.reptile.utils.TripleDES;
@@ -319,30 +321,49 @@ public class TestHttp {
 
     }
 
+
     @Test
-    public void test10() {
-        List<Dict> courts = getCourt("400");
-        for (Dict court : courts) {
-            System.out.println(court);
+    public void test10() throws IOException {
+        String html = "<div id=\"idx_map_content\" class=\"index_map_content\"> <div class=\"map_p map_p_beijing\" _name=\"北京\" _code=\"beijing\" data-val=\"1\">北京</div> <div class=\"map_p map_p_tianjin\" _name=\"天津\" _code=\"tianjin\" data-val=\"51\">天津</div> <div class=\"map_p map_p_shanghai\" _name=\"上海\" _code=\"shanghai\" data-val=\"1100\">上海</div> <div class=\"map_p map_p_chongqing\" _name=\"重庆\" _code=\"chongqing\" data-val=\"2950\">重庆</div> <div class=\"map_p map_p_hebei\" _name=\"河北\" _code=\"hebei\" data-val=\"100\">河北</div> <div class=\"map_p map_p_shanxi\" _name=\"山西\" _code=\"shanxi\" data-val=\"300\">山西</div> <div class=\"map_p map_p_liaoning\" _name=\"辽宁\" _code=\"liaoning\" data-val=\"600\">辽宁</div> <div class=\"map_p map_p_jilin\" _name=\"吉林\" _code=\"jilin\" data-val=\"750\">吉林</div> <div class=\"map_p map_p_heilongjiang\" _name=\"黑龙江\" _code=\"heilongjiang\" data-val=\"850\">黑龙江</div> <div class=\"map_p map_p_jiangsu\" _name=\"江苏\" _code=\"jiangsu\" data-val=\"1150\">江苏</div> <div class=\"map_p map_p_zhejiang\" _name=\"浙江\" _code=\"zhejiang\" data-val=\"1300\">浙江</div> <div class=\"map_p map_p_anhui\" _name=\"安徽\" _code=\"anhui\" data-val=\"1451\">安徽</div> <div class=\"map_p map_p_fujian\" _name=\"福建\" _code=\"fujian\" data-val=\"1600\">福建</div> <div class=\"map_p map_p_jiangxi\" _name=\"江西\" _code=\"jiangxi\" data-val=\"1700\">江西</div> <div class=\"map_p map_p_shandong\" _name=\"山东\" _code=\"shandong\" data-val=\"1850\">山东</div> <div class=\"map_p map_p_henan\" _name=\"河南\" _code=\"henan\" data-val=\"2050\">河南</div> <div class=\"map_p map_p_hubei\" _name=\"湖北\" _code=\"hubei\" data-val=\"2250\">湖北</div> <div class=\"map_p map_p_hunan\" _name=\"湖南\" _code=\"hunan\" data-val=\"2400\">湖南</div> <div class=\"map_p map_p_guangdong\" _name=\"广东\" _code=\"guangdong\" data-val=\"2550\">广东</div> <div class=\"map_p map_p_hainan\" _name=\"海南\" _code=\"hainan\" data-val=\"2900\">海南</div> <div class=\"map_p map_p_sichuan\" _name=\"四川\" _code=\"sichuan\" data-val=\"3000\">四川</div> <div class=\"map_p map_p_guizhou\" _name=\"贵州\" _code=\"guizhou\" data-val=\"3250\">贵州</div> <div class=\"map_p map_p_yunnan\" _name=\"云南\" _code=\"yunnan\" data-val=\"3350\">云南</div> <div class=\"map_p map_p_shanxi2\" _name=\"陕西\" _code=\"shanxi2\" data-val=\"3600\">陕西</div> <div class=\"map_p map_p_gansu\" _name=\"甘肃\" _code=\"gansu\" data-val=\"3750\">甘肃</div> <div class=\"map_p map_p_qinghai\" _name=\"青海\" _code=\"qinghai\" data-val=\"3900\">青海</div> <div class=\"map_p map_p_taiwan\" _name=\"台湾\" _code=\"taiwan\" data-val=\"\">台湾</div> <div class=\"map_p map_p_neimenggu\" _name=\"内蒙古\" _code=\"neimenggu\" data-val=\"451\">内蒙古</div> <div class=\"map_p map_p_guangxi\" _name=\"广西\" _code=\"guangxi\" data-val=\"2750\">广西</div> <div class=\"map_p map_p_xizang\" _name=\"西藏\" _code=\"xizang\" data-val=\"3500\">西藏</div> <div class=\"map_p map_p_ningxia\" _name=\"宁夏\" _code=\"ningxia\" data-val=\"4000\">宁夏</div> <div class=\"map_p map_p_xinjiang\" _name=\"新疆\" _code=\"xinjiang\" data-val=\"4050\">新疆</div> <div class=\"map_p map_p_aomen\" _name=\"澳门\" _code=\"aomen\" data-val=\"\">澳门</div> <div class=\"map_p map_p_xianggang\" _name=\"香港\" _code=\"xianggang\" data-val=\"\">香港</div> </div>";
+        Document document = Jsoup.parse(html);
+        Element mapContent = document.getElementById("idx_map_content");
+        List<Dict> countList = new CopyOnWriteArrayList<>();
+        Integer level = 0;
+        for (Element child : mapContent.children()) {
+            String name = child.attr("_name");
+            String code = child.attr("data-val");
+            System.out.println("name=" + name + "--code=" + code);
+            List<Dict> courts = getCourt(Integer.parseInt(code), true, countList, level);
+            for (Dict court : courts) {
+                System.out.println(court);
+            }
         }
+
 
     }
 
 
-    public List<Dict> getCourt(String code) {
+    public List<Dict> getCourt(Integer code, boolean searchParent, List<Dict> countList, Integer level) {
+
+        if (level >= 2) {
+            level = 0;
+            return countList;
+        }
+        level++;
         String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
         String pageId = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> params = new HashMap<>();
         params.put("pageId", pageId);
         params.put("s8", "02");
-        params.put("parentCode", code);
-        params.put("cfg", "com.lawyee.judge.dc.parse.dto.LoadDicDsoDTO@loadFyByCode");
+        params.put("provinceCode", code);
+        params.put("searchParent", searchParent);
+        params.put("cfg", "com.lawyee.judge.dc.parse.dto.LoadDicDsoDTO@loadFy");
         params.put("__RequestVerificationToken", ParamsUtils.random(24));
         params.put("wh", 470);
         params.put("ww", 1680);
         HttpResponse response = null;
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(10);
             response = HttpRequest.post(url)
                     .form(params)
                     .timeout(-1)
@@ -359,7 +380,7 @@ public class TestHttp {
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
-                    //  .header("User-Agent", properties.getUserAgent())
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36")
                     //  .header("sec-ch-ua", properties.getSecChUa())
                     .header("sec-ch-ua-mobile", "?0")
                     .header("sec-ch-ua-platform", "Windows")
@@ -369,13 +390,12 @@ public class TestHttp {
             Result result = JSON.parseObject(response.body(), Result.class);
             JSONObject object = JSON.parseObject(result.getResult());
             List<Dict> courts = JSON.parseArray(object.getJSONArray("fy").toJSONString(), Dict.class);
-            List<Dict> countList = new CopyOnWriteArrayList<>();
             if (courts.size() == 0) {
                 return countList;
             }
             countList.addAll(courts);
             for (Dict court : courts) {
-                countList.addAll(getCourt(court.getCode()));
+                getCourt(court.getId(), false, countList, level);
             }
             return countList;
         } catch (Exception e) {
