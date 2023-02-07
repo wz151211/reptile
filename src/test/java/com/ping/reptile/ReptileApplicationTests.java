@@ -1,12 +1,18 @@
 package com.ping.reptile;
 
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.ping.reptile.mapper.AreaMapper;
 import com.ping.reptile.mapper.CourtMapper;
+import com.ping.reptile.model.entity.AreaEntity;
 import com.ping.reptile.model.entity.CourtEntity;
 import com.ping.reptile.model.vo.Dict;
-import com.ping.reptile.service.CpwsService;
-import com.ping.reptile.mapper.AreaMapper;
-import com.ping.reptile.model.entity.AreaEntity;
+import com.ping.reptile.model.vo.Result;
 import com.ping.reptile.service.*;
+import com.ping.reptile.utils.IpUtils;
+import com.ping.reptile.utils.ParamsUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -18,7 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -170,7 +179,7 @@ class ReptileApplicationTests {
         Document document = Jsoup.parse(html);
         Element mapContent = document.getElementById("idx_map_content");
         List<Dict> countList = new CopyOnWriteArrayList<>();
-        Integer level =0;
+        Integer level = 0;
         TestHttp testHttp = new TestHttp();
         for (Element child : mapContent.children()) {
             String name = child.attr("_name");
@@ -179,7 +188,7 @@ class ReptileApplicationTests {
             if (StringUtils.isEmpty(code)) {
                 continue;
             }
-            List<Dict> courts = testHttp.getCourt(Integer.parseInt(code), true, countList,level);
+            List<Dict> courts = testHttp.getCourt(0, true, countList, level);
             for (Dict court : courts) {
                 System.out.println(court);
                 CourtEntity entity = new CourtEntity();
@@ -195,5 +204,103 @@ class ReptileApplicationTests {
                 }
             }
         }
+    }
+
+    @Test
+    public void testCourt1() {
+        List<Dict> countList = new CopyOnWriteArrayList<>();
+        Integer level = 0;
+
+        List<Dict> courts = getCourt(0, true, countList, level);
+        for (Dict court : courts) {
+            System.out.println(court);
+            CourtEntity entity = new CourtEntity();
+            entity.setId(court.getId());
+            entity.setCode(court.getCode());
+            entity.setParentId(court.getParentid());
+            //   entity.setProvince(name);
+            entity.setName(court.getName());
+            try {
+                courtMapper.insert(entity);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    public List<Dict> getCourt(Integer code, boolean searchParent, List<Dict> countList, Integer level) {
+        level++;
+        String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
+        String pageId = UUID.randomUUID().toString().replace("-", "");
+        Map<String, Object> params = new HashMap<>();
+        params.put("pageId", pageId);
+        params.put("s8", "02");
+        params.put("provinceCode", code);
+        params.put("searchParent", searchParent);
+        params.put("cfg", "com.lawyee.judge.dc.parse.dto.LoadDicDsoDTO@loadFy");
+        params.put("__RequestVerificationToken", ParamsUtils.random(24));
+        params.put("wh", 470);
+        params.put("ww", 1680);
+        HttpResponse response = null;
+        try {
+            TimeUnit.SECONDS.sleep(10);
+            response = HttpRequest.post(url)
+                    .form(params)
+                    .timeout(-1)
+                    .header("Accept", "application/json, text/javascript, */*; q=0.01")
+                    .header("X-Real-IP", IpUtils.getIp())
+                    .header("X-Forwarded-For", IpUtils.getIp())
+                    .header("Accept-Encoding", "gzip, deflate, br")
+                    .header("Accept-Language", "zh-CN,zh;q=0.9")
+                    .header("Connection", "keep-alive")
+                    .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                    .header("Host", "wenshu.court.gov.cn")
+                    .header("Origin", "https://wenshu.court.gov.cn")
+                    .header("Referer", "https://wenshu.court.gov.cn/website/wenshu/181217BMTKHNT2W0/index.html?pageId=" + pageId + "&s8=02")
+                    .header("Sec-Fetch-Dest", "empty")
+                    .header("Sec-Fetch-Mode", "cors")
+                    .header("Sec-Fetch-Site", "same-origin")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36")
+                    //  .header("sec-ch-ua", properties.getSecChUa())
+                    .header("sec-ch-ua-mobile", "?0")
+                    .header("sec-ch-ua-platform", "Windows")
+                    .header("X-Requested-With", "XMLHttpRequest")
+                    .execute();
+            System.out.println(response.body());
+            Result result = JSON.parseObject(response.body(), Result.class);
+            JSONObject object = JSON.parseObject(result.getResult());
+            List<Dict> courts = JSON.parseArray(object.getJSONArray("fy").toJSONString(), Dict.class);
+            if (courts.size() == 0) {
+                return countList;
+            }
+            for (Dict court : courts) {
+                System.out.println(court);
+                CourtEntity entity = new CourtEntity();
+                entity.setId(court.getId());
+                entity.setCode(court.getCode());
+                entity.setParentId(court.getParentid());
+                //   entity.setProvince(name);
+                entity.setName(court.getName());
+                try {
+                    courtMapper.insert(entity);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            countList.addAll(courts);
+            for (Dict court : courts) {
+                getCourt(court.getId(), false, countList, level);
+            }
+            return countList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return null;
     }
 }

@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-/*
+
 @Component
-@Async*/
+@Async
 @Slf4j
 public class CpwsTask {
 
@@ -18,8 +18,8 @@ public class CpwsTask {
     @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
     public void document() {
         try {
-             cpwsService.login();
-           // cpwsService.params();
+            cpwsService.login();
+            cpwsService.params();
         } catch (Exception e) {
             log.error("", e);
         }

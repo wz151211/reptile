@@ -344,11 +344,6 @@ public class TestHttp {
 
 
     public List<Dict> getCourt(Integer code, boolean searchParent, List<Dict> countList, Integer level) {
-
-        if (level >= 2) {
-            level = 0;
-            return countList;
-        }
         level++;
         String url = "https://wenshu.court.gov.cn/website/parse/rest.q4w";
         String pageId = UUID.randomUUID().toString().replace("-", "");

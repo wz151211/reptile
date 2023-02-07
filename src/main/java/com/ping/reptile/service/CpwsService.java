@@ -11,6 +11,7 @@ import com.ping.reptile.mapper.ConfigTempMapper;
 import com.ping.reptile.mapper.CourtMapper;
 import com.ping.reptile.mapper.DocumentMapper;
 import com.ping.reptile.model.entity.ConfigTempEntity;
+import com.ping.reptile.model.entity.CourtEntity;
 import com.ping.reptile.model.entity.DocumentEntity;
 import com.ping.reptile.model.vo.Dict;
 import com.ping.reptile.model.vo.Result;
@@ -65,12 +66,13 @@ public class CpwsService {
     private WebDriverWait webDriverWait = null;
     private AtomicInteger days = new AtomicInteger(0);
     private LocalDate date = null;
+    private LocalDateTime loginDate = LocalDateTime.now();
     private ConfigTempEntity configTempEntity = null;
     private final String indexUrl = "https://wenshu.court.gov.cn/";
 
-    private List<Dict> areas = new ArrayList<>();
-    private List<Dict> docTypes = new ArrayList<>();
-    private Map<String, String> docTypeMap = new HashMap<>();
+    private final List<Dict> areas = new ArrayList<>();
+    private final List<Dict> docTypes = new ArrayList<>();
+    private final Map<String, String> docTypeMap = new HashMap<>();
 
 
     {
@@ -79,13 +81,9 @@ public class CpwsService {
         options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
         options.setHeadless(true);
         options.addArguments("--no-sandbox");
-        //  options.setExperimentalOption("excludeSwitches", "enable-automation");
         options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
         options.addArguments("--disable-blink-features=AutomationControlled");
         driver = new ChromeDriver(options);
-        //  options.addArguments("--window-size=1920,1080");
-        //   devTools = driver.getDevTools();
-        //   devTools.createSession();
         webDriverWait = new WebDriverWait(driver, Duration.ofMillis(60 * 1000));
 
     }
@@ -143,7 +141,7 @@ public class CpwsService {
             password.sendKeys("123456Aa");
             TimeUnit.SECONDS.sleep(2);
             driver.findElement(By.xpath("//*[@id=\"root\"]/div/form/div/div[3]/span")).click();
-            accountMapper.updateState(account, "2");
+            accountMapper.updateState(account, 2);
         } else {
             try {
                 String text = element.getText();
@@ -155,14 +153,39 @@ public class CpwsService {
                 e.printStackTrace();
             }
         }
-        params();
     }
 
-    public void params() throws InterruptedException {
+    public void logout() {
         try {
+            driver.get(indexUrl);
+            TimeUnit.SECONDS.sleep(5);
+            driver.findElement(By.linkText("退出")).click();
+            TimeUnit.SECONDS.sleep(3);
+            driver.findElement(By.className("layui-layer-btn0")).click();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void params() {
+        try {
+            if (loginDate.plusHours(3).isBefore(LocalDateTime.now())) {
+                logout();
+                accountMapper.updateState(account, 3);
+                TimeUnit.MINUTES.sleep(3);
+                loginDate = LocalDateTime.now();
+                login();
+            }
             configTempEntity = configTempMapper.selectById(properties.getId());
             if (date == null) {
                 date = LocalDate.parse(configTempEntity.getRefereeDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+            }
+            if (date.minusDays(days.get()).getYear() < 2000) {
+                courtMapper.updateStateByName(configTempEntity.getCourtName(), 1);
+                CourtEntity court = courtMapper.getCourt();
+                configTempMapper.updateCourtNameById(properties.getId(), court.getName());
+                configTempMapper.updateRefereeDateById(properties.getId(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+                days.set(0);
             }
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.className("inputWrapper")));
             WebElement indexSearch = driver.findElement(By.className("advenced-search"));
@@ -182,6 +205,19 @@ public class CpwsService {
             String type = DictUtils.getFullTextType(fullTextType.trim());
             String qbTypeJs = "var temp = document.getElementById('qbType');temp.setAttribute('data-val','" + type + "');temp.innerText='" + fullTextType.trim() + "';";
             driver.executeScript(qbTypeJs);
+        }
+
+        //法院名称
+        String courtName = configTempEntity.getCourtName();
+        if (StringUtils.isEmpty(courtName)) {
+            CourtEntity court = courtMapper.getCourt();
+            courtName = court.getName();
+            courtMapper.updateStateByName(courtName, 2);
+            configTempMapper.updateCourtNameById(properties.getId(), court.getName());
+        }
+        if (StringUtils.isNotEmpty(courtName)) {
+            String keyJs = "var temp = document.getElementById('s2');temp.value='" + courtName.trim() + "'";
+            driver.executeScript(keyJs);
         }
         //案件类型
         String caseType = configTempEntity.getCaseType();
@@ -235,50 +271,34 @@ public class CpwsService {
         }
 
         page();
+        days.getAndAdd(configTempEntity.getIntervalDays());
+        params();
     }
 
-    public void page() throws InterruptedException {
-        LocalDateTime start = LocalDateTime.now();
-        if ((start.getMinute() <= 2) || (start.getMinute() >= 30 && start.getMinute() <= 31)) {
-            TimeUnit.MINUTES.sleep(3);
-        }
+    public void page() {
         try {
             TimeUnit.SECONDS.sleep(6);
+            violation();
+            LocalDateTime start = LocalDateTime.now();
+            if ((start.getMinute() <= 2) || (start.getMinute() >= 30 && start.getMinute() <= 31)) {
+                TimeUnit.MINUTES.sleep(3);
+            }
             String text = driver.findElement(By.className("fr con_right")).findElement(By.tagName("span")).getText();
             if (Integer.parseInt(text) > 600) {
-
-            }
-            WebElement container = driver.findElement(By.className("container"));
-            if (container.getText().contains("账号存在违规行为")) {
-                try {
-                    accountMapper.updateState(account, "3");
-                    driver.get(indexUrl);
-                    TimeUnit.SECONDS.sleep(5);
-                    driver.findElement(By.linkText("退出")).click();
-                    TimeUnit.SECONDS.sleep(3);
-                    driver.findElement(By.className("layui-layer-btn0")).click();
-                    TimeUnit.MINUTES.sleep(30);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                login();
-                return;
+                log.info("列表数量={}", text);
             }
             webDriverWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(By.className("caseName"), 0));
         } catch (Exception e) {
             e.printStackTrace();
             List<WebElement> pageButtons = driver.findElements(By.className("pageButton"));
             if (pageButtons == null || pageButtons.size() == 0) {
-                days.getAndAdd(configTempEntity.getIntervalDays());
-            } else {
-                WebElement nextPage = pageButtons.get(pageButtons.size() - 1);
-                String attribute = nextPage.getAttribute("class");
-                if (attribute.contains("disabled")) {
-                    days.getAndAdd(configTempEntity.getIntervalDays());
-                }
+                return;
             }
-            params();
-            return;
+            WebElement nextPage = pageButtons.get(pageButtons.size() - 1);
+            String attribute = nextPage.getAttribute("class");
+            if (attribute.contains("disabled")) {
+                return;
+            }
         }
         String windowHandle = driver.getWindowHandle();
         List<WebElement> elements = driver.findElements(By.className("caseName"));
@@ -296,48 +316,21 @@ public class CpwsService {
         }
         List<WebElement> pageButtons = driver.findElements(By.className("pageButton"));
         if (pageButtons == null || pageButtons.size() == 0) {
-            days.getAndAdd(configTempEntity.getIntervalDays());
-            params();
             return;
-
         }
         WebElement nextPage = pageButtons.get(pageButtons.size() - 1);
         String attribute = nextPage.getAttribute("class");
         if (attribute.contains("disabled")) {
-            days.getAndAdd(configTempEntity.getIntervalDays());
-            params();
             return;
         } else {
             nextPage.click();
             page();
         }
-
     }
 
     public void details(String docId) {
         try {
             TimeUnit.SECONDS.sleep(RandomUtil.randomInt(configTempEntity.getMin(), configTempEntity.getMax()));
-            WebElement container = driver.findElement(By.className("container"));
-            if (container != null && container.getText().contains("账号存在违规行为")) {
-                try {
-                    accountMapper.updateState(account, "3");
-                    driver.get(indexUrl);
-                    TimeUnit.SECONDS.sleep(5);
-                    driver.findElement(By.linkText("退出")).click();
-                    TimeUnit.SECONDS.sleep(3);
-                    driver.findElement(By.className("layui-layer-btn0")).click();
-                    TimeUnit.MINUTES.sleep(30);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                login();
-                return;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
             LocalDateTime start = LocalDateTime.now();
             if ((start.getMinute() <= 1) || (start.getMinute() >= 30 && start.getMinute() <= 31)) {
                 TimeUnit.MINUTES.sleep(3);
@@ -395,6 +388,25 @@ public class CpwsService {
             driver.close();
             driver.switchTo().newWindow(WindowType.TAB);
             driver.get(docId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void violation() {
+        try {
+            WebElement container = driver.findElement(By.className("container"));
+            if (container != null && container.getText().contains("账号存在违规行为")) {
+                try {
+                    accountMapper.updateState(account, -12);
+                    logout();
+                    TimeUnit.MINUTES.sleep(30);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                login();
+                params();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

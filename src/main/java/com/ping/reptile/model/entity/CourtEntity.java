@@ -25,4 +25,8 @@ public class CourtEntity {
     @TableField("province")
     private String province;
 
+    @TableField("complete")
+    private Integer complete;
+
+
 }

@@ -19,7 +19,8 @@ public class CustomProperties {
     private Integer intervalDays = 10;
     private String account;
     private Integer min = 10;
-
     private Integer max = 30;
+    private String path = "C:\\temp\\userDate";
+    private Integer port = 9222;
 
 }

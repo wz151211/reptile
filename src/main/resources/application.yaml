@@ -37,6 +37,6 @@ logging:
     org.asynchttpclient : info
     org.openqa : warn
 custom:
-  id: 2
+  id: 4
 server:
   port: 10021

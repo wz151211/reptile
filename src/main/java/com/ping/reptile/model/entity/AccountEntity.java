@@ -14,5 +14,5 @@ public class AccountEntity {
     @TableField("account")
     private String account;
     @TableField("state")
-    private String state;
+    private Integer state;
 }

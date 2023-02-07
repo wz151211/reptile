@@ -12,4 +12,8 @@ public interface ConfigTempMapper extends BaseMapper<ConfigTempEntity> {
         update(null, Wrappers.<ConfigTempEntity>lambdaUpdate().set(ConfigTempEntity::getRefereeDate, date).eq(ConfigTempEntity::getId, id));
     }
 
+    default void updateCourtNameById(Integer id, String courtName) {
+        update(null, Wrappers.<ConfigTempEntity>lambdaUpdate().set(ConfigTempEntity::getCourtName, courtName).eq(ConfigTempEntity::getId, id));
+    }
+
 }
