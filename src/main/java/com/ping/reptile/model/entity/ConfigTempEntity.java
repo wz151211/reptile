@@ -18,6 +18,9 @@ public class ConfigTempEntity {
     @TableField("referee_date")
     private String refereeDate;
 
+    @TableField("end_date")
+    private String endDate;
+
     @TableField("interval_days")
     private Integer intervalDays;
 

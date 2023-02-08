@@ -66,6 +66,7 @@ public class CpwsService {
     private WebDriverWait webDriverWait = null;
     private AtomicInteger days = new AtomicInteger(0);
     private LocalDate date = null;
+    private LocalDate endDate = null;
     private LocalDateTime loginDate = LocalDateTime.now();
     private ConfigTempEntity configTempEntity = null;
     private final String indexUrl = "https://wenshu.court.gov.cn/";
@@ -84,7 +85,7 @@ public class CpwsService {
         options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
         options.addArguments("--disable-blink-features=AutomationControlled");
         driver = new ChromeDriver(options);
-        webDriverWait = new WebDriverWait(driver, Duration.ofMillis(60 * 1000));
+        webDriverWait = new WebDriverWait(driver, Duration.ofMillis(15 * 1000));
 
     }
 
@@ -180,7 +181,10 @@ public class CpwsService {
             if (date == null) {
                 date = LocalDate.parse(configTempEntity.getRefereeDate(), DateTimeFormatter.ISO_LOCAL_DATE);
             }
-            if (date.minusDays(days.get()).getYear() < 2000) {
+            if (endDate == null) {
+                endDate = LocalDate.parse(configTempEntity.getEndDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+            }
+            if (date.minusDays(days.get()).isBefore(endDate)) {
                 courtMapper.updateStateByName(configTempEntity.getCourtName(), 1);
                 CourtEntity court = courtMapper.getCourt();
                 configTempMapper.updateCourtNameById(properties.getId(), court.getName());
@@ -252,6 +256,7 @@ public class CpwsService {
         String endJs = "var temp = document.getElementById('cprqEnd');temp.value='" + end + "'";
         driver.executeScript(endJs);
         WebElement searchBtn = driver.findElement(By.id("searchBtn"));
+        webDriverWait.until(ExpectedConditions.elementToBeClickable(searchBtn));
         searchBtn.click();
         List<WebElement> pageButtons = driver.findElements(By.className("pageButton"));
         if (pageButtons != null && pageButtons.size() > 0) {
