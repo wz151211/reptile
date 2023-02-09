@@ -99,7 +99,7 @@ class ReptileApplicationTests {
             cpwsService.login();
             //cpwsService.params();
             //  cpwsService.page();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

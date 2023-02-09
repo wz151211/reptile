@@ -112,7 +112,7 @@ public class CpwsService {
         }
     }
 
-    public void login() throws InterruptedException {
+    public void login() {
         driver.get(indexUrl);
         WebElement element = null;
         try {
@@ -121,10 +121,10 @@ public class CpwsService {
             e.printStackTrace();
         }
         if (element == null) {
-            TimeUnit.SECONDS.sleep(5);
-            driver.findElement(By.linkText("登录")).click();
-            TimeUnit.SECONDS.sleep(5);
             try {
+                TimeUnit.SECONDS.sleep(5);
+                driver.findElement(By.linkText("登录")).click();
+                TimeUnit.SECONDS.sleep(5);
                 webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("contentIframe")));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -140,7 +140,11 @@ public class CpwsService {
             WebElement password = driver.findElement(By.name("password"));
             password.clear();
             password.sendKeys("123456Aa");
-            TimeUnit.SECONDS.sleep(2);
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             driver.findElement(By.xpath("//*[@id=\"root\"]/div/form/div/div[3]/span")).click();
             accountMapper.updateState(account, 2);
         } else {
