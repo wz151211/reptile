@@ -85,7 +85,7 @@ public class CpwsService {
         options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
         options.addArguments("--disable-blink-features=AutomationControlled");
         driver = new ChromeDriver(options);
-        webDriverWait = new WebDriverWait(driver, Duration.ofMillis(15 * 1000));
+        webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
     }
 
@@ -213,7 +213,7 @@ public class CpwsService {
 
         //法院名称
         String courtName = configTempEntity.getCourtName();
-        if (StringUtils.isEmpty(courtName)) {
+        if (StringUtils.isEmpty(courtName) && StringUtils.isEmpty(fullTextName)) {
             CourtEntity court = courtMapper.getCourt();
             courtName = court.getName();
             courtMapper.updateStateByName(courtName, 2);
@@ -257,6 +257,11 @@ public class CpwsService {
         driver.executeScript(endJs);
         WebElement searchBtn = driver.findElement(By.id("searchBtn"));
         webDriverWait.until(ExpectedConditions.elementToBeClickable(searchBtn));
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         searchBtn.click();
         List<WebElement> pageButtons = driver.findElements(By.className("pageButton"));
         if (pageButtons != null && pageButtons.size() > 0) {
@@ -335,6 +340,7 @@ public class CpwsService {
 
     public void details(String docId) {
         try {
+            violation();
             TimeUnit.SECONDS.sleep(RandomUtil.randomInt(configTempEntity.getMin(), configTempEntity.getMax()));
             LocalDateTime start = LocalDateTime.now();
             if ((start.getMinute() <= 1) || (start.getMinute() >= 30 && start.getMinute() <= 31)) {
@@ -382,7 +388,7 @@ public class CpwsService {
         try {
             driver.get(docId);
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.className("PDF_title")));
-            TimeUnit.SECONDS.sleep(4);
+            TimeUnit.SECONDS.sleep(2);
         } catch (TimeoutException e) {
             e.printStackTrace();
             try {
@@ -393,6 +399,7 @@ public class CpwsService {
             driver.close();
             driver.switchTo().newWindow(WindowType.TAB);
             driver.get(docId);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.className("PDF_title")));
         } catch (Exception e) {
             e.printStackTrace();
         }
