@@ -174,7 +174,7 @@ public class CpwsService {
 
     public void params() {
         try {
-            if (loginDate.plusHours(3).isBefore(LocalDateTime.now())) {
+            if (loginDate.plusHours(2).isBefore(LocalDateTime.now())) {
                 logout();
                 accountMapper.updateState(account, 3);
                 TimeUnit.MINUTES.sleep(3);
