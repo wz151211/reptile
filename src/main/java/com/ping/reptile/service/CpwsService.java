@@ -199,6 +199,10 @@ public class CpwsService {
             WebElement indexSearch = driver.findElement(By.className("advenced-search"));
             webDriverWait.until(ExpectedConditions.elementToBeClickable(indexSearch));
             indexSearch.click();
+
+            WebElement resetBtn = driver.findElement(By.id("resetBtn"));
+            webDriverWait.until(ExpectedConditions.elementToBeClickable(resetBtn));
+            resetBtn.click();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -400,6 +404,8 @@ public class CpwsService {
 
                 }
             });
+        } catch (TimeoutException e) {
+
         } catch (Exception e) {
             e.printStackTrace();
         }
