@@ -142,11 +142,12 @@ public class CpwsService {
             password.sendKeys("123456Aa");
             try {
                 TimeUnit.SECONDS.sleep(2);
+                driver.findElement(By.xpath("//*[@id=\"root\"]/div/form/div/div[3]/span")).click();
+                accountMapper.updateState(account, 2);
+                TimeUnit.SECONDS.sleep(2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            driver.findElement(By.xpath("//*[@id=\"root\"]/div/form/div/div[3]/span")).click();
-            accountMapper.updateState(account, 2);
         } else {
             try {
                 String text = element.getText();
@@ -189,11 +190,18 @@ public class CpwsService {
                 endDate = LocalDate.parse(configTempEntity.getEndDate(), DateTimeFormatter.ISO_LOCAL_DATE);
             }
             if (date.minusDays(days.get()).isBefore(endDate)) {
-                courtMapper.updateStateByName(configTempEntity.getCourtName(), 1);
-                CourtEntity court = courtMapper.getCourt();
-                configTempMapper.updateCourtNameById(properties.getId(), court.getName());
-                configTempMapper.updateRefereeDateById(properties.getId(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-                days.set(0);
+                if (configTempEntity.getSearchType() == 1) {
+                    courtMapper.updateStateByName(configTempEntity.getCourtName(), 1);
+                    CourtEntity court = courtMapper.getCourt();
+                    configTempMapper.updateCourtNameById(properties.getId(), court.getName());
+                    configTempMapper.updateRefereeDateById(properties.getId(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+                    days.set(0);
+                }
+                if (configTempEntity.getSearchType() == 2) {
+                    log.info("当前查询条件数据已查询完成");
+                    return;
+                }
+
             }
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.className("inputWrapper")));
             WebElement indexSearch = driver.findElement(By.className("advenced-search"));
@@ -221,7 +229,7 @@ public class CpwsService {
 
         //法院名称
         String courtName = configTempEntity.getCourtName();
-        if (StringUtils.isEmpty(courtName) && StringUtils.isEmpty(fullTextName)) {
+        if (StringUtils.isEmpty(courtName) && configTempEntity.getSearchType() == 1) {
             CourtEntity court = courtMapper.getCourt();
             courtName = court.getName();
             courtMapper.updateStateByName(courtName, 2);
@@ -245,6 +253,14 @@ public class CpwsService {
             String docTypeJs = "var temp = document.getElementById('s6');temp.setAttribute('data-val','" + type + "');temp.innerText='" + docType.trim() + "';";
             driver.executeScript(docTypeJs);
         }
+
+        //文书类型
+        String cause = configTempEntity.getCause();
+        if (StringUtils.isNotEmpty(cause)) {
+            String type = DictUtils.getCause(cause.trim());
+            String causeJs = "var temp = document.getElementById('s16');temp.setAttribute('data-val','" + type + "');temp.setAttribute('data-level','3');temp.innerText='" + cause.trim() + "';";
+            driver.executeScript(causeJs);
+        }
         //审判程序
         String trialProceedings = configTempEntity.getTrialProceedings();
         if (StringUtils.isNotEmpty(trialProceedings)) {
@@ -264,8 +280,8 @@ public class CpwsService {
         String endJs = "var temp = document.getElementById('cprqEnd');temp.value='" + end + "'";
         driver.executeScript(endJs);
         WebElement searchBtn = driver.findElement(By.id("searchBtn"));
-        webDriverWait.until(ExpectedConditions.elementToBeClickable(searchBtn));
         try {
+            webDriverWait.until(ExpectedConditions.elementToBeClickable(searchBtn));
             TimeUnit.SECONDS.sleep(3);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -300,10 +316,6 @@ public class CpwsService {
             LocalDateTime start = LocalDateTime.now();
             if ((start.getMinute() <= 2) || (start.getMinute() >= 30 && start.getMinute() <= 31)) {
                 TimeUnit.MINUTES.sleep(3);
-            }
-            String text = driver.findElement(By.className("fr con_right")).findElement(By.tagName("span")).getText();
-            if (Integer.parseInt(text) > 600) {
-                log.info("列表数量={}", text);
             }
             webDriverWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(By.className("caseName"), 0));
         } catch (Exception e) {

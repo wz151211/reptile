@@ -48,4 +48,10 @@ public class ConfigTempEntity {
     @TableField("trial_proceedings")
     private String trialProceedings;
 
+    @TableField("cause")
+    private String cause;
+
+    @TableField("search_type")
+    private Integer searchType;
+
 }

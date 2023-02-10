@@ -10,16 +10,19 @@ public class DictUtils {
     private static Map<String, String> docTypeMap = new HashMap<>();
     private static Map<String, String> trialProceedingsMap = new HashMap<>();
 
+    private static Map<String, String> causeMap = new HashMap<>();
+
+
     static {
-        fullTextTypeMap.put("1", "全文");
-        fullTextTypeMap.put("2", "首部");
-        fullTextTypeMap.put("3", "当事人段");
-        fullTextTypeMap.put("4", "诉讼记录");
-        fullTextTypeMap.put("5", "事实");
-        fullTextTypeMap.put("6", "理由");
-        fullTextTypeMap.put("7", "判决结果");
-        fullTextTypeMap.put("8", "尾部");
-        fullTextTypeMap.put("255", "其他");
+        fullTextTypeMap.put("全文", "1");
+        fullTextTypeMap.put("首部", "2");
+        fullTextTypeMap.put("当事人段", "3");
+        fullTextTypeMap.put("诉讼记录", "4");
+        fullTextTypeMap.put("事实", "5");
+        fullTextTypeMap.put("理由", "6");
+        fullTextTypeMap.put("判决结果", "7");
+        fullTextTypeMap.put("尾部", "8");
+        fullTextTypeMap.put("其他", "255");
 
 
         caseTypeMap.put("管辖案件", "01");
@@ -44,6 +47,9 @@ public class DictUtils {
         docTypeMap.put("令", "09");
         docTypeMap.put("其他", "10");
 
+        causeMap.put("危害税收征管罪", "127");
+        causeMap.put("税务行政管理（税务）", "xz1800");
+        causeMap.put("财政行政管理（财政）", "xz2200");
 
         trialProceedingsMap.put("刑事一审", "0201");
         trialProceedingsMap.put("刑事二审", "0202");
@@ -64,6 +70,10 @@ public class DictUtils {
 
     public static String getDocType(String name) {
         return docTypeMap.get(name);
+    }
+
+    public static String getCause(String name) {
+        return causeMap.get(name);
     }
 
     public static String getTrialProceedings(String name) {
