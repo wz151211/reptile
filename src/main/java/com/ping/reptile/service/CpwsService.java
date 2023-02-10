@@ -322,6 +322,20 @@ public class CpwsService {
                 href = element.getAttribute("href");
                 details(href);
                 driver.close();
+                try {
+                    Set<String> handles = driver.getWindowHandles();
+                    if (handles != null && handles.size() > 1) {
+                        for (String handle : handles) {
+                            if (handle.equals(windowHandle)) {
+                                continue;
+                            }
+                            driver.switchTo().window(handle);
+                            driver.close();
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 driver.switchTo().window(windowHandle);
             } catch (Exception e) {
                 e.printStackTrace();
