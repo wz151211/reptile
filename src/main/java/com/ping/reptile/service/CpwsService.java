@@ -10,6 +10,7 @@ import com.ping.reptile.mapper.AccountMapper;
 import com.ping.reptile.mapper.ConfigTempMapper;
 import com.ping.reptile.mapper.CourtMapper;
 import com.ping.reptile.mapper.DocumentMapper;
+import com.ping.reptile.model.entity.AccountEntity;
 import com.ping.reptile.model.entity.ConfigTempEntity;
 import com.ping.reptile.model.entity.CourtEntity;
 import com.ping.reptile.model.entity.DocumentEntity;
@@ -132,9 +133,11 @@ public class CpwsService {
             driver.switchTo().frame(driver.findElement(By.id("contentIframe")));
             WebElement accountElement = driver.findElement(By.name("username"));
             accountElement.clear();
-            account = accountMapper.getAccount();
-            if (account == null) {
+            AccountEntity entity = accountMapper.getAccount();
+            if (entity == null) {
                 return;
+            } else {
+                account = entity.getAccount();
             }
             accountElement.sendKeys(account);
             WebElement password = driver.findElement(By.name("password"));
@@ -164,10 +167,11 @@ public class CpwsService {
     public void logout() {
         try {
             driver.get(indexUrl);
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(3);
             driver.findElement(By.linkText("退出")).click();
             TimeUnit.SECONDS.sleep(3);
             driver.findElement(By.className("layui-layer-btn0")).click();
+            TimeUnit.SECONDS.sleep(3);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -205,12 +209,8 @@ public class CpwsService {
             }
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.className("inputWrapper")));
             WebElement indexSearch = driver.findElement(By.className("advenced-search"));
-            webDriverWait.until(ExpectedConditions.elementToBeClickable(indexSearch));
+            TimeUnit.SECONDS.sleep(3);
             indexSearch.click();
-
-            WebElement resetBtn = driver.findElement(By.id("resetBtn"));
-            webDriverWait.until(ExpectedConditions.elementToBeClickable(resetBtn));
-            resetBtn.click();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -279,20 +279,20 @@ public class CpwsService {
 
         String endJs = "var temp = document.getElementById('cprqEnd');temp.value='" + end + "'";
         driver.executeScript(endJs);
-        WebElement searchBtn = driver.findElement(By.id("searchBtn"));
         try {
-            webDriverWait.until(ExpectedConditions.elementToBeClickable(searchBtn));
+            WebElement searchBtn = driver.findElement(By.id("searchBtn"));
             TimeUnit.SECONDS.sleep(3);
+            searchBtn.click();
         } catch (InterruptedException e) {
             e.printStackTrace();
+            driver.navigate().refresh();
+            params();
         }
-        searchBtn.click();
         List<WebElement> pageButtons = driver.findElements(By.className("pageButton"));
         if (pageButtons != null && pageButtons.size() > 0) {
             try {
                 TimeUnit.SECONDS.sleep(3);
                 WebElement order = driver.findElement(By.xpath("//*[@id=\"_view_1545184311000\"]/div[2]/div[2]/a"));
-                webDriverWait.until(ExpectedConditions.elementToBeClickable(order));
                 order.click();
                 TimeUnit.SECONDS.sleep(3);
                 WebElement pageSizeSelect = driver.findElement(By.className("pageSizeSelect"));
@@ -374,7 +374,6 @@ public class CpwsService {
 
     public void details(String docId) {
         try {
-            violation();
             TimeUnit.SECONDS.sleep(RandomUtil.randomInt(configTempEntity.getMin(), configTempEntity.getMax()));
             LocalDateTime start = LocalDateTime.now();
             if ((start.getMinute() <= 1) || (start.getMinute() >= 30 && start.getMinute() <= 31)) {
@@ -422,7 +421,14 @@ public class CpwsService {
             e.printStackTrace();
         }
         try {
+            long start = System.currentTimeMillis();
             driver.get(docId);
+            long end = System.currentTimeMillis();
+            if (end - start > 10 * 1000) {
+                driver.close();
+                return;
+            }
+            violation();
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.className("PDF_title")));
             TimeUnit.SECONDS.sleep(2);
         } catch (TimeoutException e) {
@@ -434,7 +440,13 @@ public class CpwsService {
             }
             driver.close();
             driver.switchTo().newWindow(WindowType.TAB);
+            long start = System.currentTimeMillis();
             driver.get(docId);
+            long end = System.currentTimeMillis();
+            if (end - start > 10 * 1000) {
+                driver.close();
+                return;
+            }
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.className("PDF_title")));
         } catch (Exception e) {
             e.printStackTrace();

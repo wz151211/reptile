@@ -6,6 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
+
 @Data
 @TableName("account")
 public class AccountEntity {
@@ -15,4 +19,6 @@ public class AccountEntity {
     private String account;
     @TableField("state")
     private Integer state;
+    @TableField("update_date")
+    private LocalDateTime updateDate;
 }
