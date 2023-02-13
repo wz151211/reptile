@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Mapper
@@ -36,5 +37,9 @@ public interface AccountMapper extends BaseMapper<AccountEntity> {
 
     default void updateState(String account, Integer state) {
         update(null, Wrappers.<AccountEntity>lambdaUpdate().set(AccountEntity::getState, state).set(AccountEntity::getUpdateDate, new Date()).eq(AccountEntity::getAccount, account));
+    }
+
+    default List<AccountEntity> getAccountList() {
+        return selectList(Wrappers.<AccountEntity>lambdaQuery().eq(AccountEntity::getState, 1).or().eq(AccountEntity::getState, 3).eq(AccountEntity::getCategory, 0).orderByAsc(AccountEntity::getUpdateDate));
     }
 }

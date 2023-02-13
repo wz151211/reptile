@@ -129,6 +129,7 @@ public class CpwsService {
                 webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("contentIframe")));
             } catch (Exception e) {
                 e.printStackTrace();
+                driver.navigate().refresh();
             }
             driver.switchTo().frame(driver.findElement(By.id("contentIframe")));
             WebElement accountElement = driver.findElement(By.name("username"));
@@ -147,7 +148,6 @@ public class CpwsService {
                 TimeUnit.SECONDS.sleep(2);
                 driver.findElement(By.xpath("//*[@id=\"root\"]/div/form/div/div[3]/span")).click();
                 accountMapper.updateState(account, 2);
-                TimeUnit.SECONDS.sleep(2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -162,6 +162,12 @@ public class CpwsService {
                 e.printStackTrace();
             }
         }
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public void logout() {
@@ -179,6 +185,7 @@ public class CpwsService {
 
     public void params() {
         try {
+            TimeUnit.SECONDS.sleep(2);
             if (loginDate.plusHours(2).isBefore(LocalDateTime.now())) {
                 logout();
                 accountMapper.updateState(account, 3);

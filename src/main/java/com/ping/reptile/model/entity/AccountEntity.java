@@ -21,4 +21,6 @@ public class AccountEntity {
     private Integer state;
     @TableField("update_date")
     private LocalDateTime updateDate;
+    @TableField("category")
+    private Integer category;
 }
