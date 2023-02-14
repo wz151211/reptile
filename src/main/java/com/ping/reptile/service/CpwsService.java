@@ -57,7 +57,7 @@ public class CpwsService {
     @Autowired
     private ConfigTempMapper configTempMapper;
     @Autowired
-    private AccountMapper accountMapper;
+    private AccountService accountService;
 
     @Autowired
     private CourtMapper courtMapper;
@@ -134,7 +134,7 @@ public class CpwsService {
             driver.switchTo().frame(driver.findElement(By.id("contentIframe")));
             WebElement accountElement = driver.findElement(By.name("username"));
             accountElement.clear();
-            AccountEntity entity = accountMapper.getAccount();
+            AccountEntity entity = accountService.getAccount(properties.getCategory());
             if (entity == null) {
                 return;
             } else {
@@ -147,7 +147,7 @@ public class CpwsService {
             try {
                 TimeUnit.SECONDS.sleep(2);
                 driver.findElement(By.xpath("//*[@id=\"root\"]/div/form/div/div[3]/span")).click();
-                accountMapper.updateState(account, 2);
+                accountService.updateState(account, 2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -188,7 +188,7 @@ public class CpwsService {
             TimeUnit.SECONDS.sleep(2);
             if (loginDate.plusHours(2).isBefore(LocalDateTime.now())) {
                 logout();
-                accountMapper.updateState(account, 3);
+                accountService.updateState(account, 3);
                 TimeUnit.MINUTES.sleep(3);
                 loginDate = LocalDateTime.now();
                 login();
@@ -465,7 +465,7 @@ public class CpwsService {
             WebElement container = driver.findElement(By.className("container"));
             if (container != null && container.getText().contains("账号存在违规行为")) {
                 try {
-                    accountMapper.updateState(account, -12);
+                    accountService.updateState(account, -12);
                     logout();
                     TimeUnit.MINUTES.sleep(30);
                 } catch (InterruptedException e) {

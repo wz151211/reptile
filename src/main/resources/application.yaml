@@ -29,7 +29,6 @@ logging:
     max-history: 30
     max-size: 10MB
     name: ./log/${spring.application.name}.log
-  config: classpath:logback-spring.xml
   level:
     root: info
     com.ping.reptile : info
@@ -38,5 +37,6 @@ logging:
     org.openqa : warn
 custom:
   id: 11
+  category: 1
 server:
   port: 10021
