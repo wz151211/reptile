@@ -23,8 +23,13 @@ public class AccountService {
             if (accounts.size() == 0) {
                 log.info("没有可分配账号，请添加账号");
             } else {
+                int count = 0;
                 for (AccountEntity account : accounts) {
+                    if (count >= 8) {
+                        continue;
+                    }
                     accountMapper.updateCategory(account.getAccount(), category);
+                    count++;
                 }
             }
         }
