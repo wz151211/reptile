@@ -12,10 +12,10 @@ import java.util.List;
 public interface AccountMapper extends BaseMapper<AccountEntity> {
     default AccountEntity getAccount(Integer category) {
         return selectOne(Wrappers.<AccountEntity>lambdaQuery()
+                .eq(AccountEntity::getCategory, category)
                 .eq(AccountEntity::getState, 1)
                 .or()
                 .eq(AccountEntity::getState, 3)
-                .eq(AccountEntity::getCategory, category)
                 .last("limit 1")
                 .orderByAsc(AccountEntity::getUpdateDate));
     }
@@ -36,10 +36,10 @@ public interface AccountMapper extends BaseMapper<AccountEntity> {
 
     default List<AccountEntity> getAccountByCategory(Integer category) {
         return selectList(Wrappers.<AccountEntity>lambdaQuery()
-                .eq(AccountEntity::getState, 1).
-                or()
-                .eq(AccountEntity::getState, 3)
                 .eq(AccountEntity::getCategory, category)
+                .eq(AccountEntity::getState, 1)
+                .or()
+                .eq(AccountEntity::getState, 3)
                 .orderByAsc(AccountEntity::getUpdateDate));
 
     }
