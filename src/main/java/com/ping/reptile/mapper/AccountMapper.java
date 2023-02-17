@@ -29,7 +29,7 @@ public interface AccountMapper extends BaseMapper<AccountEntity> {
 
     default void updateCategory(String account, Integer category) {
         update(null, Wrappers.<AccountEntity>lambdaUpdate()
-                .set(AccountEntity::getState, category)
+                .set(AccountEntity::getCategory, category)
                 .set(AccountEntity::getUpdateDate, new Date())
                 .eq(AccountEntity::getAccount, account));
     }
