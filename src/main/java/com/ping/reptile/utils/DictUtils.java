@@ -51,6 +51,17 @@ public class DictUtils {
         causeMap.put("税务行政管理（税务）", "xz1800");
         causeMap.put("财政行政管理（财政）", "xz2200");
 
+
+        causeMap.put("强奸罪", "166");
+        causeMap.put("强制猥亵、侮辱罪", "4218");
+        causeMap.put("猥亵儿童罪", "169");
+
+        causeMap.put("组织卖淫罪", "328");
+        causeMap.put("强迫卖淫罪", "329");
+        causeMap.put("引诱、容留、介绍卖淫罪", "331");
+        causeMap.put("引诱幼女卖淫罪", "332");
+
+
         trialProceedingsMap.put("刑事一审", "0201");
         trialProceedingsMap.put("刑事二审", "0202");
         trialProceedingsMap.put("民事一审", "0301");
