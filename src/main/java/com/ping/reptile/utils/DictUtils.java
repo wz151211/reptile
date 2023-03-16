@@ -62,6 +62,11 @@ public class DictUtils {
         causeMap.put("引诱幼女卖淫罪", "332");
 
 
+        causeMap.put("盗掘古文化遗址、古墓葬罪", "283");
+
+
+
+
         trialProceedingsMap.put("刑事一审", "0201");
         trialProceedingsMap.put("刑事二审", "0202");
         trialProceedingsMap.put("民事一审", "0301");
