@@ -25,8 +25,8 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v109.network.Network;
-import org.openqa.selenium.devtools.v109.network.model.Response;
+import org.openqa.selenium.devtools.v112.network.Network;
+import org.openqa.selenium.devtools.v112.network.model.Response;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -78,15 +78,22 @@ public class CpwsService {
 
 
     {
-
+        System.setProperty("webdriver.http.factory", "jdk-http-client");
         ChromeOptions options = new ChromeOptions();
-        options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
-        options.setHeadless(true);
+        options.setExperimentalOption("debuggerAddress", "localhost:9000");
+        options.addArguments("--headless=new");
+        options.addArguments("--remote-allow-origins=*");
         options.addArguments("--no-sandbox");
         options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+      //  options.addArguments("--disable-blink-features=AutomationControlled");
+      //  driver = new ChromeDriver(options);
+      //  webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+  /*      FirefoxOptions options = new FirefoxOptions();
+        options.setHeadless(true);
+        options.addArguments("--no-sandbox");
         options.addArguments("--disable-blink-features=AutomationControlled");
-        driver = new ChromeDriver(options);
-        webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        options.set*/
 
     }
 
@@ -123,13 +130,18 @@ public class CpwsService {
         }
         if (element == null) {
             try {
-                TimeUnit.SECONDS.sleep(5);
+                TimeUnit.SECONDS.sleep(2);
                 driver.findElement(By.linkText("登录")).click();
-                TimeUnit.SECONDS.sleep(5);
+                TimeUnit.SECONDS.sleep(2);
                 webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("contentIframe")));
             } catch (Exception e) {
                 e.printStackTrace();
-                driver.navigate().refresh();
+                try {
+                    driver.navigate().refresh();
+                    driver.findElement(By.linkText("登录")).click();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
             driver.switchTo().frame(driver.findElement(By.id("contentIframe")));
             WebElement accountElement = driver.findElement(By.name("username"));
@@ -185,7 +197,7 @@ public class CpwsService {
 
     public void params() {
         try {
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.SECONDS.sleep(5);
             if (loginDate.plusHours(2).isBefore(LocalDateTime.now())) {
                 logout();
                 accountService.updateState(account, 3);
@@ -265,7 +277,7 @@ public class CpwsService {
         String cause = configTempEntity.getCause();
         if (StringUtils.isNotEmpty(cause)) {
             String type = DictUtils.getCause(cause.trim());
-            String causeJs = "var temp = document.getElementById('s16');temp.setAttribute('data-val','" + type + "');temp.setAttribute('data-level','3');temp.innerText='" + cause.trim() + "';";
+            String causeJs = "var temp = document.getElementById('s16');temp.setAttribute('data-val','" + type + "');temp.setAttribute('data-level','4');temp.innerText='" + cause.trim() + "';";
             driver.executeScript(causeJs);
         }
         //审判程序
@@ -441,7 +453,7 @@ public class CpwsService {
         } catch (TimeoutException e) {
             e.printStackTrace();
             try {
-                TimeUnit.SECONDS.sleep(3);
+                TimeUnit.SECONDS.sleep(2);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }

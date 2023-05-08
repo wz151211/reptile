@@ -1,20 +1,30 @@
 package com.ping.reptile;
 
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.ping.reptile.mapper.AreaMapper;
+import com.ping.reptile.mapper.CauseMapper;
 import com.ping.reptile.mapper.CourtMapper;
+import com.ping.reptile.mapper.DocumentMapper;
 import com.ping.reptile.model.entity.AreaEntity;
+import com.ping.reptile.model.entity.CauseEntity;
 import com.ping.reptile.model.entity.CourtEntity;
+import com.ping.reptile.model.entity.DocumentEntity;
 import com.ping.reptile.model.vo.Dict;
 import com.ping.reptile.model.vo.Result;
 import com.ping.reptile.service.*;
 import com.ping.reptile.utils.IpUtils;
 import com.ping.reptile.utils.ParamsUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.WordprocessingML.AltChunkType;
+import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -22,12 +32,15 @@ import org.jsoup.select.Elements;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -44,7 +57,7 @@ class ReptileApplicationTests {
     private CasePunishService casePunishService;
 
     @Autowired
-    private PkulawService pkulawService;
+    private PkulawService_bak pkulawService;
 
     @Autowired
     private PkulawUpdateService updateService;
@@ -55,6 +68,8 @@ class ReptileApplicationTests {
 
     @Autowired
     private CpwsService cpwsService;
+    @Autowired
+    private DocumentMapper documentMapper;
 
     @Test
     void contextLoads() {
@@ -302,5 +317,69 @@ class ReptileApplicationTests {
             }
         }
         return null;
+    }
+
+    @Test
+    public void testpc() throws Exception {
+        List<DocumentEntity> entities = documentMapper.selectList(Wrappers.lambdaQuery());
+        for (DocumentEntity entity : entities) {
+            String htmlContent = entity.getHtmlContent();
+            String docPath = "D:\\pc\\" + entity.getName() + ".docx";
+            File file = new File(docPath);
+            if (file.exists()) {
+                docPath = "D:\\pc\\" + entity.getName() + "-" + RandomUtil.randomString(5) + ".docx";
+            }
+            htmlAsAltChunk2Docx(htmlContent, docPath);
+        }
+    }
+
+    public void htmlAsAltChunk2Docx(String html, String docxPath) throws Exception {
+        List<String> strings = Files.readAllLines(Paths.get(html));
+        StringBuilder sb = new StringBuilder();
+        for (String string : strings) {
+            sb.append(string)
+                    .append("\n");
+        }
+
+        WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.createPackage();
+        MainDocumentPart mdp = wordMLPackage.getMainDocumentPart();
+        //   wordMLPackage.setFontMapper(IFontHandler.getFontMapper());
+        // Add the Html altChunk
+        //  String html = sb.toString();
+        mdp.addAltChunk(AltChunkType.Html, html.getBytes());
+
+        // Round trip
+        WordprocessingMLPackage pkgOut = mdp.convertAltChunks();
+
+        pkgOut.save(new File(docxPath));
+    }
+
+    @Autowired
+    private CauseMapper causeMapper;
+
+    @Test
+    private void test() {
+        List<Dict> causes = new ArrayList<>();
+        try {
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource[] resources = resolver.getResources("classpath:doc/*.txt");
+            for (Resource resource : resources) {
+                if ("cause.txt".equals(resource.getFilename())) {
+                    String text = IOUtils.toString(resource.getURI(), StandardCharsets.UTF_8);
+                    causes.addAll(JSON.parseArray(text, Dict.class));
+                }
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (Dict cause : causes) {
+            CauseEntity entity = new CauseEntity();
+            entity.setId(cause.getId().toString());
+            entity.setPid(cause.getParent());
+            entity.setName(cause.getText());
+            causeMapper.insert(entity);
+        }
     }
 }

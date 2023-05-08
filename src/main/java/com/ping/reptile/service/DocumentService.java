@@ -157,7 +157,7 @@ public class DocumentService {
 
         ConfigEntity entity = configList.get(RandomUtil.randomInt(0, configList.size()));
         log.info("config:{}", entity);
-        String session = config.getSession();
+        String session = null;
         String[] split = session.split(";");
         List<HttpCookie> cookieList = new ArrayList<>();
         for (int i = 0; i < split.length; i++) {
@@ -294,7 +294,7 @@ public class DocumentService {
             params.put("cs", 0);
             ConfigEntity configEntity = configList.get(RandomUtil.randomInt(0, configList.size()));
             log.info("config:{}", configEntity);
-            String session = config.getSession();
+            String session = null;
             String[] split = session.split(";");
             List<HttpCookie> cookieList = new ArrayList<>();
             for (String s : split) {
@@ -431,7 +431,7 @@ public class DocumentService {
             params.put("cs", 0);
             ConfigEntity configEntity = configList.get(RandomUtil.randomInt(0, configList.size()));
             log.info("config:{}", configEntity);
-            String session = config.getSession();
+            String session = null;
             String[] split = session.split(";");
             List<HttpCookie> cookieList = new ArrayList<>();
             for (String s : split) {

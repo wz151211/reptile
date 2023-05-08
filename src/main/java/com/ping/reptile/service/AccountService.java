@@ -18,6 +18,7 @@ public class AccountService {
 
     public AccountEntity getAccount(Integer category) {
         List<AccountEntity> entities = accountMapper.getAccountByCategory(category);
+        AccountEntity temp = null;
         if (entities.size() < 5) {
             List<AccountEntity> accounts = accountMapper.getAccountByCategory(0);
             if (accounts.size() == 0) {
@@ -31,7 +32,11 @@ public class AccountService {
                     accountMapper.updateCategory(account.getAccount(), category);
                     count++;
                 }
+                temp = accounts.get(0);
             }
+        }
+        if (temp != null) {
+            return temp;
         }
         AccountEntity entity = accountMapper.getAccount(category);
         if (entity != null) {

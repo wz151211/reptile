@@ -21,8 +21,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * @Author: W.Z
  * @Date: 2022/8/27 09:05
  */
-/*@Component
-@Async*/
+@Component
+@Async
 @Slf4j
 public class Task {
     private final Lock docLock = new ReentrantLock();
@@ -39,7 +39,7 @@ public class Task {
     @Autowired
     private PunishService punishService;
     @Autowired
-    private PkulawService pkulawService;
+    private PkulawService_bak pkulawService;
 
     @Autowired
     private CasePunishService casePunishService;
@@ -52,7 +52,7 @@ public class Task {
     @Autowired
     private JudicialCasesService judicialCasesService;
 
-    @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 30L)
+    // @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void document() {
         boolean tryLock = false;
         try {
@@ -97,19 +97,9 @@ public class Task {
         }
     }
 
-    //  @Scheduled(initialDelay = 5 * 1000L, fixedRate = 1000 * 60 * 30L)
+    @Scheduled(initialDelay = 5 * 1000L, fixedRate = 1000 * 60 * 30L)
     public void pkulaw() {
-        boolean tryLock = false;
-        try {
-            tryLock = pkulawLock.tryLock(2, TimeUnit.SECONDS);
-            pkulawService.page(0, 10);
-        } catch (Exception e) {
-            log.error("", e);
-        } finally {
-            if (tryLock) {
-                pkulawLock.unlock();
-            }
-        }
+        pkulawService.page(0, 20);
     }
 
     //  @Scheduled(initialDelay = 8 * 1000L, fixedRate = 1000 * 60 * 30L)

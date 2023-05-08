@@ -1,8 +1,7 @@
 package com.ping.reptile.controller;
 
 import com.ping.reptile.model.vo.Result;
-import com.ping.reptile.service.PkulawService;
-import com.ping.reptile.service.PunishService;
+import com.ping.reptile.service.PkulawService_bak;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PkulawPunishController {
 
     @Autowired
-    private PkulawService pkulawService;
+    private PkulawService_bak pkulawService;
 
 
     @GetMapping("page")

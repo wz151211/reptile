@@ -22,7 +22,7 @@ spring:
     name: reptile
 mybatis-plus:
   configuration:
-    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
 logging:
   file:
@@ -36,7 +36,7 @@ logging:
     org.asynchttpclient : info
     org.openqa : warn
 custom:
-  id: 11
-  category: 1
+  id: 1
+  category: 3
 server:
   port: 10021

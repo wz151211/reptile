@@ -11,7 +11,8 @@ public class Dict {
     private Integer id;
     private String parentid;
     private String code;
-
+    private String parent;
     private String name;
+    private String text;
     private String province;
 }
