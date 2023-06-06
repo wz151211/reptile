@@ -21,8 +21,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * @Author: W.Z
  * @Date: 2022/8/27 09:05
  */
-@Component
-@Async
+/*@Component
+@Async*/
 @Slf4j
 public class Task {
     private final Lock docLock = new ReentrantLock();

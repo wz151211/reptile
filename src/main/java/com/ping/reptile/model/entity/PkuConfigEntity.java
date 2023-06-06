@@ -15,14 +15,32 @@ public class PkuConfigEntity {
     @TableId(type = IdType.AUTO)
     private Integer id;
 
+    @TableField("name")
+    private String name;
+
     @TableField("agent")
     private String agent;
+
+    @TableField("url")
+    private String url;
+
+    @TableField("ua")
+    private String chUa;
+
+    @TableField("platform")
+    private String platform;
 
     @TableField("params")
     private String params;
 
     @TableField("session")
     private String session;
+
+    @TableField("authorization")
+    private String authorization;
+
+    @TableField("cookie")
+    private String cookie;
 
     @TableField("doc_date")
     private String docDate;
@@ -32,10 +50,4 @@ public class PkuConfigEntity {
 
     @TableField("page_size")
     private Integer pageSize;
-
-    @TableField("grouping")
-    private Integer grouping;
-
-    @TableField("case_type")
-    private String caseType;
 }

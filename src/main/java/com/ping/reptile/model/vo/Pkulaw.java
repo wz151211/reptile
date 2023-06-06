@@ -3,13 +3,14 @@ package com.ping.reptile.model.vo;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Data
-@Builder
 public class Pkulaw {
 
     private String orderbyExpression;
@@ -18,9 +19,9 @@ public class Pkulaw {
 
     private Integer pageSize;
 
-    private List<JSONObject> fieldNodes;
+    private List<Node> fieldNodes = new ArrayList<>();
 
-    private Map<String, String> clusterFilters ;
+    private Map<String, String> clusterFilters = new HashMap<>();
 
-    private Map<String, String> groupBy ;
+    private Map<String, String> groupBy = new HashMap<>();
 }

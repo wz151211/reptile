@@ -61,6 +61,8 @@ public class JudicialCasesService {
     @Autowired
     private JudicialCasesMapper judicialCasesMapper;
 
+    private Pkulaw pkulaw;
+
     private PkuConfigEntity config = null;
     private LocalDate date = null;
     private int min = 5;
@@ -84,6 +86,9 @@ public class JudicialCasesService {
         }
         if (pageSize == null) {
             pageSize = config.getPageSize();
+        }
+        if (pkulaw == null) {
+            pkulaw = JSON.parseObject(config.getParams(), Pkulaw.class);
         }
         list(pageNum, pageSize, code);
         days.getAndAdd(10);
@@ -110,67 +115,14 @@ public class JudicialCasesService {
                 e.printStackTrace();
             }
         }
-        Node punishmentDate = Node.builder().type("daterange").order(5).showText("审结日期").fieldName("LastInstanceDate").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
-                .order(0)
-                .combineAs(1)
-                .start(startDate)
-                .end(endDate)
-                //   .values(Lists.newArrayList(startMinus.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", "."),
-                //           endMinus.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".")))
-                .build())).build();
-        JSONObject object1 = JSON.parseObject("{\n" +
-                "            \"type\":\"text\",\n" +
-                "            \"order\":1,\n" +
-                "            \"showText\":\"全文\",\n" +
-                "            \"fieldName\":\"FullText\",\n" +
-                "            \"matchTypeEnabled\":false,\n" +
-                "            \"matchSpanEnabled\":true,\n" +
-                "            \"combineAs\":2,\n" +
-                "            \"subCombineAs\":2,\n" +
-                "            \"fieldItems\":[\n" +
-                "                {\n" +
-                "                    \"order\":0,\n" +
-                "                    \"values\":\"一并审查\",\n" +
-                "                    \"valuesCombineAs\":2,\n" +
-                "                    \"extra\":{\n" +
-                "                        \"combineAs\":2,\n" +
-                "                        \"values\":\"规范性文件\"\n" +
-                "                    },\n" +
-                "                    \"matchType\":1,\n" +
-                "                    \"matchSpan\":1,\n" +
-                "                    \"matchSpanGap\":0,\n" +
-                "                    \"fieldScope\":{\n" +
-                "                        \"fieldName\":\"\",\n" +
-                "                        \"showText\":\"\"\n" +
-                "                    },\n" +
-                "                    \"filterNodes\":[\n" +
-                "\n" +
-                "                    ]\n" +
-                "                }\n" +
-                "            ]\n" +
-                "        }");
-
-        Map<String, String> group = new HashMap<>();
-        group.put("CaseGrade", code);
-        Pkulaw pkulaw = Pkulaw.builder()
-                .orderbyExpression("SortNum Desc,LastInstanceDate Des")
-                .pageIndex(pageNum)
-                .pageSize(pageSize)
-                .fieldNodes(Lists.newArrayList(object1, JSON.parseObject(JSON.toJSONString(punishmentDate))))
-                .clusterFilters(group)
-                .groupBy(group)
-                .build();
 
         HttpResponse response = null;
-        JSONConfig conf = new JSONConfig();
-        conf.setOrder(true);
-        String jsonStr = JSONUtil.toJsonStr(pkulaw, conf);
-        log.info("列表请求参数-{}", jsonStr);
+        log.info("列表请求参数-{}", pkulaw);
         try {
             TimeUnit.SECONDS.sleep(5);
             response = HttpRequest.post(url)
                     .timeout(1000 * 30)
-                    .body(jsonStr)
+                    .body(JSON.toJSONString(pkulaw))
                     .header("X-Real-IP", IpUtils.getIp())
                     .header("X-Forwarded-For", IpUtils.getIp())
                     .header("Accept", "application/json, text/plain, */*")

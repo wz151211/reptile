@@ -3,8 +3,6 @@ package com.ping.reptile.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
-import cn.hutool.json.JSONConfig;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -15,16 +13,12 @@ import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.Cookie;
-import com.google.common.collect.Lists;
 import com.ping.reptile.common.properties.CustomProperties;
 import com.ping.reptile.mapper.ConfigMapper;
 import com.ping.reptile.mapper.PkulawPunishMapper;
 import com.ping.reptile.model.entity.ConfigEntity;
 import com.ping.reptile.model.entity.PkulawPunishEntity;
-import com.ping.reptile.model.vo.Item;
-import com.ping.reptile.model.vo.Node;
 import com.ping.reptile.model.vo.Pkulaw;
-import com.ping.reptile.model.vo.Theme;
 import com.ping.reptile.utils.IpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -38,7 +32,6 @@ import java.net.HttpCookie;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,6 +48,7 @@ public class PkulawService_bak {
     @Autowired
     private PkulawPunishMapper punishMapper;
 
+    private Pkulaw pkulaw;
     private ConfigEntity config = null;
     private LocalDate date = null;
     private AtomicInteger days = new AtomicInteger(0);
@@ -76,6 +70,9 @@ public class PkulawService_bak {
         }
         if (pageSize == null) {
             pageSize = config.getPageSize();
+        }
+        if (pkulaw == null) {
+            pkulaw = JSON.parseObject(config.getParams(), Pkulaw.class);
         }
         list(pageNum, pageSize);
         days.getAndIncrement();
@@ -104,49 +101,9 @@ public class PkulawService_bak {
                 e.printStackTrace();
             }
         }
-        Node punishmentDate = Node.builder().type("daterange").order(5).showText("处罚日期").fieldName("PunishmentDate").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
-                .order(0)
-                .combineAs(1)
-                .start(startDate)
-                .end(endDate)
-                .values(Lists.newArrayList(startMinus.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", "."),
-                        endMinus.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".")))
-                .build())).build();
-
-        Node category = Node.builder().type("select").order(4).showText("主题分类").fieldName("Category").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
-                .value(Lists.newArrayList("003"))
-                .keywordTagData(Lists.newArrayList("003"))
-                .order(0)
-                .combineAs(2)
-                .filterNodes(Lists.newArrayList())
-                .items(Lists.newArrayList(Theme.builder().name("环保").value("003").text("环保").path("003").build()))
-                .build())).build();
-
-/*
-        Node.builder().type("select").order(6).showText("处罚种类").fieldName("PunishmentTypeNew").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
-                .value(Lists.newArrayList("004", "002"))
-                .keywordTagData(Lists.newArrayList("001,002"))
-                .order(0)
-                .combineAs(2)
-                .items(Lists.newArrayList(Theme.builder().name("警告、通报批评").value("001").text("警告、通报批评").path("001").build(),
-                        Theme.builder().name("罚款、没收违法所得、没收非法财物").value("002").text("罚款、没收违法所得、没收非法财物").path("002").build()
-                ))
-                .build())).build();
-*/
-        Pkulaw pkulaw = Pkulaw.builder()
-                .orderbyExpression("PunishmentDate Desc")
-                .pageIndex(pageNum)
-                .pageSize(pageSize)
-                .fieldNodes(Lists.newArrayList(JSON.parseObject(JSON.toJSONString(punishmentDate))))
-                .clusterFilters(new HashMap<>())
-                .groupBy(new HashMap<>())
-                .build();
 
         HttpResponse response = null;
-        JSONConfig conf = new JSONConfig();
-        conf.setOrder(true);
-        String jsonStr = JSONUtil.toJsonStr(pkulaw, conf);
-        log.info("列表请求参数-{}", jsonStr);
+        log.info("列表请求参数-{}", pkulaw);
         String cookies = "gr_user_id=4d3d27b0-eb97-469d-8cba-d9fa6bc63bac; Hm_lvt_8266968662c086f34b2a3e2ae9014bf8=1682319538,1682754556,1683429513; pkulaw_v6_sessionid=jsdogntuqmir2t3n0w3pdzd0; a2e71717-86ec-ed11-b393-00155d3c0709_law=false; xCloseNew=8; CookieId=691505240b7fdf1f6301760eb79e1dd7; CookieId_LEGACY=691505240b7fdf1f6301760eb79e1dd7; KC_ROOT_LOGIN=1; KC_ROOT_LOGIN_LEGACY=1; SUB=e2234215-2a5d-43db-bef8-ea2a153c338b; SUB_LEGACY=e2234215-2a5d-43db-bef8-ea2a153c338b; f0871a58-97d1-ec11-b392-00155d3c0709_law=false; div_display=none; __RequestVerificationToken=e3Hu4_8sQZ9pTUEoCeYAC_RHOwoV1sw0Vo9LxMZlYm8sKHHJw1pBHbQa57We6pmqoMZEPIZTkVeWm2NXeeJS7ITAh9o1; userislogincookie=true; LoginAccount=wx2022051210004826671; authormes=bf20bed2d11ba001ebcb5ea4f0f65183b299c26aa1900a84b7822b69c68f18c1a5404d51976aefdabdfb; referer=https://www.pkulaw.com/penalty?way=topGuid; Hm_up_8266968662c086f34b2a3e2ae9014bf8=%7B%22ysx_yhqx_20220602%22%3A%7B%22value%22%3A%220%22%2C%22scope%22%3A1%7D%2C%22ysx_hy_20220527%22%3A%7B%22value%22%3A%2203%22%2C%22scope%22%3A1%7D%2C%22uid_%22%3A%7B%22value%22%3A%22f0871a58-97d1-ec11-b392-00155d3c0709%22%2C%22scope%22%3A1%7D%2C%22ysx_yhjs_20220602%22%3A%7B%22value%22%3A%221%22%2C%22scope%22%3A1%7D%7D; Hm_lpvt_8266968662c086f34b2a3e2ae9014bf8=1683463767";
         List<HttpCookie> list = new ArrayList<>();
         for (String s : cookies.split(";")) {
@@ -161,7 +118,7 @@ public class PkulawService_bak {
             response = HttpRequest.post(url)
                     .timeout(1000 * 30)
                     .cookie(list)
-                    .body(JSON.toJSONString("{\"orderbyExpression\":\"PunishmentDate Desc\",\"pageIndex\":1,\"pageSize\":10,\"fieldNodes\":[],\"clusterFilters\":{},\"groupBy\":{}}"))
+                    .body(JSON.toJSONString(pkulaw))
                     // .header("X-Real-IP", IpUtils.getIp())
                     // .header("X-Forwarded-For", IpUtils.getIp())
                     .header("Accept", "application/json, text/plain, */*")
@@ -195,7 +152,7 @@ public class PkulawService_bak {
         }
 
         try {
-            log.info("body={}",response.body());
+            log.info("body={}", response.body());
             JSONObject object = JSON.parseObject(response.body());
             if (object == null) {
                 return;

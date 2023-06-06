@@ -45,37 +45,11 @@ public class TestTongYongPkulaw {
         String startDate = start.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
         String endDate = end.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
         log.info("pageNum = {},day={}", 0, startDate);
-        Node punishmentDate = Node.builder().type("daterange").order(5).showText("处罚日期").fieldName("PunishmentDate").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
-                .order(0)
-                .combineAs(1)
-                .start(startDate)
-                .end(endDate)
-                .values(Lists.newArrayList(startMinus.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", "."),
-                        endMinus.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".")))
-                .build())).build();
-
-        Node category = Node.builder().type("select").order(4).showText("主题分类").fieldName("Category").combineAs(2).fieldItems(Lists.newArrayList(Item.builder()
-                .value(Lists.newArrayList("003"))
-                .keywordTagData(Lists.newArrayList("003"))
-                .order(0)
-                .combineAs(2)
-                .filterNodes(Lists.newArrayList())
-                .items(Lists.newArrayList(Theme.builder().name("环保").value("003").text("环保").path("003").build()))
-                .build())).build();
-
-        Pkulaw pkulaw = Pkulaw.builder()
-                .orderbyExpression("PunishmentDate Desc")
-                .pageIndex(0)
-                .pageSize(10)
-            //    .fieldNodes(Lists.newArrayList(punishmentDate, category))
-                .clusterFilters(new HashMap<>())
-                .groupBy(new HashMap<>())
-                .build();
 
         HttpResponse response = null;
         JSONConfig conf = new JSONConfig();
         conf.setOrder(true);
-        String jsonStr = JSONUtil.toJsonStr(pkulaw, conf);
+        String jsonStr = JSONUtil.toJsonStr("", conf);
         log.info("列表请求参数-{}", jsonStr);
         response = HttpRequest.post(url)
                 .timeout(1000 * 30)

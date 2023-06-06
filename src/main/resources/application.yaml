@@ -2,9 +2,9 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://47.95.218.217:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://localhost:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
     username: root
-    password: document@ABC
+    password: 123456
     druid:
       initial-size: 30
       min-idle: 1
@@ -22,7 +22,7 @@ spring:
     name: reptile
 mybatis-plus:
   configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
     map-underscore-to-camel-case: true
 logging:
   file:
@@ -36,7 +36,7 @@ logging:
     org.asynchttpclient : info
     org.openqa : warn
 custom:
-  id: 1
-  category: 3
+  id: 6
+  intervalDays: 5
 server:
-  port: 10021
+  port: 10020

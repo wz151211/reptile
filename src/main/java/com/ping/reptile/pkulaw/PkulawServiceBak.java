@@ -1,14 +1,6 @@
-package com.ping.reptile.pkulaw.service;
+package com.ping.reptile.pkulaw;
 
-import cn.hutool.core.date.DateUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.ping.reptile.kit.DocumentKit;
-import com.ping.reptile.model.entity.DocumentEntity;
-import com.ping.reptile.model.vo.Result;
-import com.ping.reptile.utils.TripleDES;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebElement;
@@ -18,17 +10,21 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.v112.network.Network;
 import org.openqa.selenium.devtools.v112.network.model.Response;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@Service
+//@Service
 @Slf4j
-public class PkulawService {
+public class PkulawServiceBak {
     private ChromeDriver driver = null;
+    private WebDriverWait webDriverWait = null;
 
 
     {
@@ -39,35 +35,13 @@ public class PkulawService {
         options.addArguments("--remote-allow-origins=*");
         options.addArguments("--no-sandbox");
         options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-        options.addArguments("--disable-blink-features=AutomationControlled");
+       // options.addArguments("--disable-blink-features=AutomationControlled");
         driver = new ChromeDriver(options);
-        //  webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     public void list() {
         try {
-            driver.get("https://www.pkulaw.com/");
-            TimeUnit.SECONDS.sleep(3);
-            WebElement advCheckBtn = driver.findElement(By.id("advCheckBtn"));
-            TimeUnit.SECONDS.sleep(3);
-            advCheckBtn.click();
-            List<WebElement> lis = driver.findElements(By.tagName("li"));
-            List<WebElement> lis2 = driver.findElements(By.cssSelector(".el-dropdown-menu__item"));
-            for (WebElement li : lis) {
-                if (li.getText().equals("不分组")) {
-                    li.click();
-                    return;
-                }
-            }
-
-   /*         WebElement pageButton = driver.findElement(By.className("btn-next"));
-            if (pageButton == null) {
-                return;
-            }
-            String attribute = pageButton.getAttribute("disabled");
-            if (attribute.contains("disabled")) {
-                return;
-            }*/
             DevTools tools = driver.getDevTools();
             tools.createSession();
             tools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
@@ -78,6 +52,42 @@ public class PkulawService {
                 System.out.println(url);
                 System.out.println(responseBody);
             });
+            driver.get("https://www.pkulaw.com/advanced/law/chl");
+            TimeUnit.SECONDS.sleep(3);
+   /*         WebElement advCheckBtn = driver.findElement(By.id("advCheckBtn"));
+            TimeUnit.SECONDS.sleep(3);
+            advCheckBtn.click();*/
+            List<WebElement> lis = driver.findElements(By.cssSelector(".el-dropdown span"));
+
+
+            for (WebElement li : lis) {
+                System.out.println(li.getText());
+                if (li.getText().contains("分组：效力位阶")) {
+                  Actions actions = new Actions(driver);
+                  actions.moveToElement(li).perform();
+                    System.out.println("");
+                    break;
+                }
+            }
+            List<WebElement> lis2 = driver.findElements(By.cssSelector(".el-dropdown-menu__item span"));
+            for (WebElement li : lis2) {
+                System.out.println(li.getText());
+                if (li.getText().contains("不分组")) {
+                    li.click();
+                    break;
+                }
+            }
+
+
+   /*         WebElement pageButton = driver.findElement(By.className("btn-next"));
+            if (pageButton == null) {
+                return;
+            }
+            String attribute = pageButton.getAttribute("disabled");
+            if (attribute.contains("disabled")) {
+                return;
+            }*/
+            webDriverWait.until(ExpectedConditions.numberOfElementsToBeMoreThan(By.cssSelector("table tr .name"), 0));
             List<WebElement> elements = driver.findElements(By.cssSelector("table tr .name"));
             String windowHandle = driver.getWindowHandle();
             for (WebElement element : elements) {
