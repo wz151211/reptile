@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -83,15 +84,9 @@ public class CpwsService {
         options.addArguments("--remote-allow-origins=*");
         options.addArguments("--no-sandbox");
         options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-      //  options.addArguments("--disable-blink-features=AutomationControlled");
-      //  driver = new ChromeDriver(options);
-      //  webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
-  /*      FirefoxOptions options = new FirefoxOptions();
-        options.setHeadless(true);
-        options.addArguments("--no-sandbox");
         options.addArguments("--disable-blink-features=AutomationControlled");
-        options.set*/
+   /*     driver = new ChromeDriver(options);
+        webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));*/
 
     }
 
@@ -196,7 +191,7 @@ public class CpwsService {
     public void params() {
         try {
             TimeUnit.SECONDS.sleep(5);
-            if (loginDate.plusHours(2).isBefore(LocalDateTime.now())) {
+            if (loginDate.plusHours(3).isBefore(LocalDateTime.now())) {
                 logout();
                 accountService.updateState(account, 3);
                 TimeUnit.MINUTES.sleep(3);
@@ -204,6 +199,9 @@ public class CpwsService {
                 login();
             }
             configTempEntity = configTempMapper.selectById(properties.getId());
+            if (configTempEntity.getSearchType() == 1) {
+                driver.get("https://wenshu.court.gov.cn/website/wenshu/181217BMTKHNT2W0/index.html?pageId=4647c8aea1988975461858e2baf76e66");
+            }
             if (date == null) {
                 date = LocalDate.parse(configTempEntity.getRefereeDate(), DateTimeFormatter.ISO_LOCAL_DATE);
             }
@@ -246,13 +244,7 @@ public class CpwsService {
 
         //法院名称
         String courtName = configTempEntity.getCourtName();
-        if (StringUtils.isEmpty(courtName) && configTempEntity.getSearchType() == 1) {
-            CourtEntity court = courtMapper.getCourt();
-            courtName = court.getName();
-            courtMapper.updateStateByName(courtName, 2);
-            configTempMapper.updateCourtNameById(properties.getId(), court.getName());
-        }
-        if (StringUtils.isNotEmpty(courtName)) {
+        if (StringUtils.isNotEmpty(courtName) && configTempEntity.getSearchType() == 2) {
             String keyJs = "var temp = document.getElementById('s2');temp.value='" + courtName.trim() + "'";
             driver.executeScript(keyJs);
         }
@@ -299,11 +291,46 @@ public class CpwsService {
         try {
             WebElement searchBtn = driver.findElement(By.id("searchBtn"));
             TimeUnit.SECONDS.sleep(3);
-            searchBtn.click();
+            try {
+                searchBtn.click();
+            } catch (Exception e) {
+                WebElement indexSearch = driver.findElement(By.className("advenced-search"));
+                TimeUnit.SECONDS.sleep(3);
+                indexSearch.click();
+                TimeUnit.SECONDS.sleep(3);
+                searchBtn.click();
+            }
+            TimeUnit.SECONDS.sleep(3);
+            if (configTempEntity.getSearchType() == 1) {
+                CourtEntity court = courtMapper.findByName(courtName);
+                if (StringUtils.isEmpty(courtName) || court == null) {
+                    court = courtMapper.getCourt();
+                    courtName = court.getName();
+                }
+                courtMapper.updateStateByName(courtName, 2);
+                configTempMapper.updateCourtNameById(properties.getId(), court.getName());
+                String key = "s40";
+                if (courtName.contains("中级")) {
+                    key = "s39";
+                }
+                List<WebElement> elements = driver.findElements(By.className("LT_Filter_right"));
+                for (WebElement element : elements) {
+                    String text = element.getText();
+                    if (!text.contains("审理法院")) {
+                /*    String deleteJs = "var params = document.getElementsByClassName('LT_Filter_right')[0];params.childNodes.forEach(function(element){element.remove()})";
+                    driver.executeScript(deleteJs);*/
+                        String html = "<p data-key=\"" + key + "\" data-value=\"" + court.getCode() + "\">审理法院：" + court.getName() + " <i class=\"fa fa-close\"></i></p";
+                        String keyJs = "document.getElementsByClassName('LT_Filter_right')[0].insertAdjacentHTML('beforeend','" + html + "')";
+                        driver.executeScript(keyJs);
+                    }
+                    System.out.println(text);
+                    break;
+                }
+
+
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
-            driver.navigate().refresh();
-            params();
         }
         List<WebElement> pageButtons = driver.findElements(By.className("pageButton"));
         if (pageButtons != null && pageButtons.size() > 0) {
@@ -379,14 +406,18 @@ public class CpwsService {
         if (pageButtons == null || pageButtons.size() == 0) {
             return;
         }
-        WebElement nextPage = pageButtons.get(pageButtons.size() - 1);
-        String attribute = nextPage.getAttribute("class");
-        if (attribute.contains("disabled")) {
-            return;
-        } else {
-            nextPage.click();
-            page();
+        for (WebElement nextPage : pageButtons) {
+            if (nextPage.getText().contains("下一页")) {
+                String attribute = nextPage.getAttribute("class");
+                if (attribute.contains("disabled")) {
+                    return;
+                } else {
+                    nextPage.click();
+                    page();
+                }
+            }
         }
+
     }
 
     public void details(String docId) {

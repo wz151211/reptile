@@ -2,9 +2,9 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://47.95.218.217:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
     username: root
-    password: 123456
+    password: document@ABC
     druid:
       initial-size: 30
       min-idle: 1
@@ -26,17 +26,11 @@ mybatis-plus:
     map-underscore-to-camel-case: true
 logging:
   file:
-    max-history: 30
-    max-size: 10MB
     name: ./log/${spring.application.name}.log
-  level:
-    root: info
-    com.ping.reptile : info
-    io.netty : info
-    org.asynchttpclient : info
-    org.openqa : warn
+
 custom:
-  id: 6
-  intervalDays: 5
+  id: 3
+  intervalDays: 0
+  category: 1
 server:
-  port: 10020
+  port: 9001

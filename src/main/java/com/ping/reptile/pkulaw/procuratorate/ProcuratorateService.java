@@ -1,17 +1,15 @@
 package com.ping.reptile.pkulaw.procuratorate;
 
+
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.CookieManager;
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.ping.reptile.common.properties.CustomProperties;
 import com.ping.reptile.mapper.PkuConfigMapper;
 import com.ping.reptile.model.entity.PkuConfigEntity;
@@ -23,6 +21,12 @@ import com.ping.reptile.pkulaw.procuratorate.vo.ProcuratorateEntity;
 import com.ping.reptile.utils.IpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.htmlunit.BrowserVersion;
+import org.htmlunit.CookieManager;
+import org.htmlunit.NicelyResynchronizingAjaxController;
+import org.htmlunit.WebClient;
+import org.htmlunit.html.HtmlPage;
+import org.htmlunit.util.Cookie;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -37,6 +41,7 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -55,13 +60,17 @@ public class ProcuratorateService {
 
     private PkuConfigEntity config = null;
     private LocalDate date = null;
+    private DateTime start = DateUtil.date();
     private int min = 5;
     private int max = 10;
+    private DateTime time = DateUtil.date();
+    private AtomicInteger count = new AtomicInteger(0);
     private AtomicInteger days = new AtomicInteger(0);
+    private AtomicBoolean stop = new AtomicBoolean(false);
 
     private ThreadPoolExecutor executor = new ThreadPoolExecutor(
-            3,
-            3,
+            2,
+            2,
             30,
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
@@ -128,8 +137,24 @@ public class ProcuratorateService {
         HttpResponse response = null;
         log.info("列表请求参数-{}", pkulaw);
         try {
-            if (DateUtil.date().hour(true) >= 23 || DateUtil.date().hour(true) < 6) {
-                log.info("晚上23点至早上6点暂停爬取数据");
+            if (stop.get()) {
+                TimeUnit.HOURS.sleep(6);
+            }
+            DateTime now = DateUtil.date();
+            long minutes = DateUtil.between(start, now, DateUnit.MINUTE);
+            if (minutes >= 240 && minutes <= 260) {
+                log.info("休息1小时");
+                TimeUnit.HOURS.sleep(1);
+                start = DateUtil.offsetMinute(start, 300);
+            }
+            if (count.get() >= 10000) {
+                log.info("休息了，数量已到限制");
+                TimeUnit.HOURS.sleep(6);
+
+            }
+            long hours = DateUtil.between(time, now, DateUnit.HOUR);
+            if (hours >= 10) {
+                log.info("休息了，时间已到限制");
                 TimeUnit.HOURS.sleep(6);
             }
             TimeUnit.SECONDS.sleep(5);
@@ -153,12 +178,17 @@ public class ProcuratorateService {
             } catch (Exception e) {
                 log.info("解析返回结果出错={}", response.body());
                 if (response.body().contains("wyeCN")) {
-                    TimeUnit.MINUTES.sleep(8);
+                    TimeUnit.MINUTES.sleep(5);
                /*     boolean token = refreshToken();
                     if (!token) {
                         TimeUnit.HOURS.sleep(2);
-                    }
-                    list(pageNum,pageSize);*/
+                    }*/
+                    list(pageNum, pageSize);
+                }
+                if (response.body().contains("您的请求已被该站点的安全策略拦截")) {
+                    log.info("您的请求已被该站点的安全策略拦截");
+                    stop.set(true);
+                    TimeUnit.HOURS.sleep(6);
                 }
             }
             if (result == null || result.getData() == null) {
@@ -208,8 +238,9 @@ public class ProcuratorateService {
                             e.printStackTrace();
                         }
                     }
-                    //  executor.execute(() -> details(entity));
-                    details(entity);
+                    TimeUnit.SECONDS.sleep(RandomUtil.randomInt(1, 10));
+                    executor.execute(() -> details(entity));
+                    //  details(entity);
                 }
             }
             if (tatal >= pageSize) {
@@ -296,16 +327,26 @@ public class ProcuratorateService {
                 }
                 if (element.text().contains("剩余50%未阅读")) {
                     log.info("访问数量已经到达上限");
-                    TimeUnit.HOURS.sleep(6);
+                    stop.set(true);
+                    int hour = DateUtil.date().hour(true);
+                    TimeUnit.HOURS.sleep(24 - hour);
                 }
-                if (element.text().contains("剩余100%未阅读")) {
+                if (element.text().contains("今日正文查看数已满")) {
                     log.info("访问数量已经到达上限");
-                    TimeUnit.HOURS.sleep(6);
+                    stop.set(true);
+                    int hour = DateUtil.date().hour(true);
+                    TimeUnit.HOURS.sleep(24 - hour);
                 }
                 Element bgImg = parse.getElementById("bgImg");
                 if (bgImg != null) {
                     log.info("访问频率过高");
                     TimeUnit.MINUTES.sleep(20);
+                }
+                if (parse.text().contains("您的请求已被该站点的安全策略拦截")) {
+                    log.info("您的请求已被该站点的安全策略拦截");
+                    int hour = DateUtil.date().hour(true);
+                    stop.set(true);
+                    TimeUnit.HOURS.sleep(24 - hour);
                 }
             } catch (Exception ex) {
                 //  ex.printStackTrace();

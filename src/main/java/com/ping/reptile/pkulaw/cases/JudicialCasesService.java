@@ -1,4 +1,4 @@
-package com.ping.reptile.pkulaw.law;
+package com.ping.reptile.pkulaw.cases;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
@@ -11,14 +11,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.ping.reptile.common.properties.CustomProperties;
 import com.ping.reptile.mapper.PkuConfigMapper;
+import com.ping.reptile.model.entity.JudicialCasesEntity;
 import com.ping.reptile.model.entity.PkuConfigEntity;
 import com.ping.reptile.model.vo.Item;
 import com.ping.reptile.model.vo.Node;
 import com.ping.reptile.model.vo.Pkulaw;
-import com.ping.reptile.pkulaw.law.vo.PkulawEntity;
-import com.ping.reptile.pkulaw.law.vo.PkulawVo;
-import com.ping.reptile.pkulaw.law.vo.Result;
-import com.ping.reptile.pkulaw.law.vo.SummaryVo;
+import com.ping.reptile.pkulaw.law.PkulawMapper;
+import com.ping.reptile.pkulaw.law.vo.*;
 import com.ping.reptile.utils.IpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -47,13 +46,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
-public class PkulawService {
+public class JudicialCasesService {
     @Autowired
     private CustomProperties properties;
     @Autowired
     private PkuConfigMapper pkuConfigMapper;
     @Autowired
-    private PkulawMapper pkulawMapper;
+    private JudicialCasesMapper judicialCasesMapper;
 
     private Pkulaw pkulaw;
 
@@ -61,9 +60,9 @@ public class PkulawService {
 
     private PkuConfigEntity config = null;
     private LocalDate date = null;
+    private DateTime start = DateUtil.date();
     private int min = 5;
     private int max = 10;
-    private DateTime start = DateUtil.date();
     private DateTime time = DateUtil.date();
     private AtomicInteger count = new AtomicInteger(0);
     private AtomicInteger days = new AtomicInteger(0);
@@ -131,7 +130,6 @@ public class PkulawService {
     }
 
     public void list(Integer pageNum, Integer pageSize) {
-
         pkulaw.setPageIndex(pageNum);
         pkulaw.setPageSize(pageSize);
         log.info("pageNum = {}", pageNum);
@@ -190,8 +188,7 @@ public class PkulawService {
                 if (response.body().contains("您的请求已被该站点的安全策略拦截")) {
                     log.info("您的请求已被该站点的安全策略拦截");
                     stop.set(true);
-                    int hour = DateUtil.date().hour(true);
-                    TimeUnit.HOURS.sleep(24 - hour);
+                    TimeUnit.HOURS.sleep(6);
                 }
             }
             if (result == null || result.getData() == null) {
@@ -214,32 +211,30 @@ public class PkulawService {
             log.info("列表数量={}", result.getData().size());
             tatal = result.getData().size();
             for (PkulawVo vo : result.getData()) {
-                PkulawEntity pkulaw = pkulawMapper.selectOne(Wrappers.<PkulawEntity>lambdaQuery().select(PkulawEntity::getGid, PkulawEntity::getId, PkulawEntity::getTimelinessDic).eq(PkulawEntity::getGid, vo.getGid()));
-                if (pkulaw == null) {
-                    PkulawEntity entity = new PkulawEntity();
-                    entity.setTitle(vo.getTitle());
+                Long count = judicialCasesMapper.selectCount(Wrappers.<JudicialCasesEntity>lambdaQuery().eq(JudicialCasesEntity::getGid, vo.getGid()));
+                if (count == 0) {
+                    JudicialCasesEntity entity = new JudicialCasesEntity();
+                    entity.setName(vo.getTitle());
                     entity.setGid(vo.getGid());
-                    entity.setLibrary(config.getUrl().substring(config.getUrl().lastIndexOf("/") + 1));
-                    entity.setKeywords(vo.getKeywords());
                     for (SummaryVo summary : vo.getSummaries()) {
-                        if (summary.getText().contains("现行有效")
-                                || summary.getText().contains("失效")
-                                || summary.getText().contains("已被修改")
-                                || summary.getText().contains("尚未生效")
-                                || summary.getText().contains("尚未施行")
-                                || summary.getText().contains("部分失效")) {
-                            entity.setTimelinessDic(summary.getText());
-                        }
                         if (summary.getText().contains("号")) {
-                            entity.setDocumentNo(summary.getText());
+                            entity.setCaseNo(summary.getText());
                         }
-                        if (summary.getText().contains("公布")) {
-                            entity.setIssueDate(summary.getText().replace("公布", ""));
-                        }
-                        if (summary.getText().contains("施行")) {
-                            entity.setImplementDate(summary.getText().replace("施行", ""));
+                        if (summary.getText().contains(".")) {
+                            try {
+                                String date = summary.getText().replace(".", "-");
+                                DateTime dateTime = DateUtil.parse(date, "yyyy-MM-dd");
+                                entity.setRefereeDate(dateTime.toJdkDate());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
+                    if (vo.getCaseGrade() != null && vo.getCaseGrade().size() > 0) {
+                        String name = vo.getCaseGrade().get(0).getName();
+                        entity.setCaseGrade(name);
+                    }
+
                     if (executor.getQueue().size() > 50) {
                         try {
                             TimeUnit.MINUTES.sleep(3);
@@ -249,30 +244,6 @@ public class PkulawService {
                     }
                     TimeUnit.SECONDS.sleep(RandomUtil.randomInt(1, 10));
                     executor.execute(() -> details(entity));
-                    // details(entity);
-                } else {
-                    String timelinessDic = null;
-                    for (SummaryVo summary : vo.getSummaries()) {
-                        if (summary.getText().contains("现行有效")
-                                || summary.getText().contains("失效")
-                                || summary.getText().contains("已被修改")
-                                || summary.getText().contains("尚未生效")
-                                || summary.getText().contains("尚未施行")
-                                || summary.getText().contains("部分失效")) {
-                            timelinessDic = summary.getText();
-                        }
-                        if (StringUtils.isNotEmpty(timelinessDic) && !timelinessDic.equals(pkulaw.getTimelinessDic())) {
-                            PkulawEntity entity = new PkulawEntity();
-                            entity.setId(pkulaw.getId());
-                            entity.setTimelinessDic(timelinessDic);
-                            entity.setUpdateTime(new Date());
-                            try {
-                                pkulawMapper.updateById(entity);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
                 }
             }
             if (tatal >= pageSize) {
@@ -297,7 +268,7 @@ public class PkulawService {
 
     }
 
-    public void details(PkulawEntity entity) {
+    public void details(JudicialCasesEntity entity) {
         log.info("线程池中任务数量={}", executor.getQueue().size());
 
         try (final WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED)) {
@@ -347,13 +318,13 @@ public class PkulawService {
                     element = parse.getElementById("gridleft");
                     if (element == null) {
                         if (parse.text().contains("检测到您所使用的IP存在风险")) {
-                            stop.set(true);
                             log.info("IP被封");
+                            stop.set(true);
                             TimeUnit.HOURS.sleep(6);
                         }
                         if (parse.text().contains("您的账号存在安全风险已被限制访问")) {
-                            stop.set(true);
                             log.info("账号被限制访问");
+                            stop.set(true);
                             TimeUnit.HOURS.sleep(6);
                         }
                         return;
@@ -415,36 +386,53 @@ public class PkulawService {
                         value = value.substring(0, value.length() - 1);
                     }
                 }
-                if (name.contains("制定机关")) {
-                    entity.setIssueDepartment(value);
+
+                if (name.contains("案由")) {
+                    entity.setCause(value);
                 }
-                if (name.contains("效力位阶")) {
-                    entity.setEffectivenessDic(value);
+                if (name.contains("案号")) {
+                    entity.setCaseNo(value);
                 }
-                if (name.contains("法规类别")) {
-                    entity.setCategory(value);
+                if (name.contains("审理法官")) {
+                    entity.setJudge(value);
                 }
-                if (name.contains("类别") && StringUtils.isEmpty(entity.getCategory())) {
-                    entity.setCategory(value);
+                if (name.contains("文书类型")) {
+                    entity.setDocType(value);
                 }
-                if (name.contains("专题分类")) {
-                    entity.setTopicType(value);
+                if (name.contains("公开类型")) {
+                    entity.setExposedType(value);
                 }
-                if (name.contains("批准机关")) {
-                    entity.setRatifyDepartment(value);
+                if (name.contains("审理法院")) {
+                    entity.setCourt(value);
                 }
-                if (name.contains("批准日期")) {
-                    entity.setRatifDate(value);
+                if (name.contains("审结日期")) {
+                    try {
+                        String temp = value.replace(".", "-");
+                        entity.setRefereeDate(DateUtil.parse(temp, "yyyy-MM-dd").toJdkDate());
+                    } catch (Exception e) {
+                        log.info("发布日期格式化出错，date={},id={}", value, entity.getGid());
+                        e.printStackTrace();
+                    }
                 }
-                if (name.contains("失效依据")) {
-                    entity.setInvalidBasis(value);
+                if (name.contains("案件类型")) {
+                    entity.setCaseType(value);
                 }
+                if (name.contains("审理程序")) {
+                    entity.setTrialProceedings(value);
+                }
+                if (name.contains("代理律师/律所")) {
+                    entity.setLawFirm(value);
+                }
+                if (name.contains("权责关键词")) {
+                    entity.setKeyword(value);
+                }
+
             }
-            entity.setAllText(element.html());
-            log.info("案件名称={}", entity.getTitle());
+            entity.setHtml(element.html());
+            log.info("案件名称={}", entity.getName());
             entity.setCreateTime(new Date());
             try {
-                pkulawMapper.insert(entity);
+                judicialCasesMapper.insert(entity);
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -3,35 +3,25 @@ package com.ping.reptile.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
-import cn.hutool.json.JSONConfig;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.CookieManager;
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.util.Cookie;
-import com.google.common.collect.Lists;
 import com.ping.reptile.common.properties.CustomProperties;
-import com.ping.reptile.mapper.ConfigMapper;
 import com.ping.reptile.mapper.JudicialCasesMapper;
 import com.ping.reptile.mapper.PkuConfigMapper;
-import com.ping.reptile.mapper.PkulawPunishMapper;
-import com.ping.reptile.model.entity.ConfigEntity;
 import com.ping.reptile.model.entity.JudicialCasesEntity;
 import com.ping.reptile.model.entity.PkuConfigEntity;
-import com.ping.reptile.model.entity.PkulawPunishEntity;
-import com.ping.reptile.model.vo.Item;
-import com.ping.reptile.model.vo.Node;
 import com.ping.reptile.model.vo.Pkulaw;
-import com.ping.reptile.model.vo.Theme;
 import com.ping.reptile.utils.IpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.htmlunit.BrowserVersion;
+import org.htmlunit.CookieManager;
+import org.htmlunit.NicelyResynchronizingAjaxController;
+import org.htmlunit.WebClient;
+import org.htmlunit.html.HtmlPage;
+import org.htmlunit.util.Cookie;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -43,15 +33,13 @@ import java.net.HttpCookie;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Service
+//@Service
 @Slf4j
 public class JudicialCasesService {
     @Autowired
@@ -255,8 +243,7 @@ public class JudicialCasesService {
             Element fields = element.getElementsByClass("fields").get(0);
             Elements spans = fields.getElementsByTag("li");
             JudicialCasesEntity entity = new JudicialCasesEntity();
-            entity.setId(gid);
-            entity.setTitle(title);
+            entity.setName(title);
 
             for (int i = 0; i < spans.size(); i++) {
                 String value = "";
@@ -289,7 +276,7 @@ public class JudicialCasesService {
                 }
                 if (name.contains("审结日期")) {
                     try {
-                        entity.setConclusionDate(DateUtil.parse(value, "yyyy.MM.dd").toJdkDate());
+                     //   entity.setConclusionDate(DateUtil.parse(value, "yyyy.MM.dd").toJdkDate());
                     } catch (Exception e) {
                         log.info("发布日期格式化出错，date={},id={}", value, gid);
                         e.printStackTrace();
@@ -312,8 +299,8 @@ public class JudicialCasesService {
 
             Element contentElement = element.getElementById("divFullText");
             entity.setHtml(element.html());
-            entity.setContent(contentElement.text());
-            log.info("案件名称={}", entity.getTitle());
+         //   entity.setContent(contentElement.text());
+            log.info("案件名称={}", entity.getName());
             judicialCasesMapper.insert(entity);
         } catch (Exception e) {
             log.error("gid={}", gid);

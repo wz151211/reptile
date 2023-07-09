@@ -26,5 +26,7 @@ public class PkulawVo {
 
     private List<TimelinessVo> sections;
 
+    private List<TimelinessVo> caseGrade;
+
     private List<TipsVo> tips;
 }

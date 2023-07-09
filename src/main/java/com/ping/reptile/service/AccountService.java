@@ -1,5 +1,6 @@
 package com.ping.reptile.service;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.ping.reptile.mapper.AccountMapper;
 import com.ping.reptile.model.entity.AccountEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -36,6 +38,7 @@ public class AccountService {
             }
         }
         if (temp != null) {
+            accountMapper.update(null, Wrappers.<AccountEntity>lambdaUpdate().set(AccountEntity::getUpdateDate, new Date()).eq(AccountEntity::getId, temp.getId()));
             return temp;
         }
         AccountEntity entity = accountMapper.getAccount(category);

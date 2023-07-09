@@ -1,5 +1,6 @@
 package com.ping.reptile.task;
 
+import com.ping.reptile.pkulaw.cases.JudicialCasesService;
 import com.ping.reptile.pkulaw.law.PkulawService;
 import com.ping.reptile.pkulaw.procuratorate.ProcuratorateService;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +19,10 @@ public class PkulawTask {
 
     @Autowired
     private ProcuratorateService procuratorateService;
+    @Autowired
+    private JudicialCasesService judicialCasesService;
 
-    // @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
+    //  @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
     public void document() {
         try {
             pkulawService.page(0, 100);
@@ -28,10 +31,19 @@ public class PkulawTask {
         }
     }
 
-    @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
+    //   @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
     public void procuratorateDocument() {
         try {
             procuratorateService.page(0, 100);
+        } catch (Exception e) {
+            log.error("", e);
+        }
+    }
+
+    @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
+    public void judicialCases() {
+        try {
+            judicialCasesService.page(0, 100);
         } catch (Exception e) {
             log.error("", e);
         }

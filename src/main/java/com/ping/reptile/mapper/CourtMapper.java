@@ -14,6 +14,10 @@ public interface CourtMapper extends BaseMapper<CourtEntity> {
         return selectList(Wrappers.lambdaQuery());
     }
 
+    default CourtEntity findByName(String name) {
+        return selectOne((Wrappers.<CourtEntity>lambdaQuery().eq(CourtEntity::getName, name)));
+    }
+
     default CourtEntity getCourt() {
         return selectOne(Wrappers.<CourtEntity>lambdaQuery().eq(CourtEntity::getComplete, 0).last("limit 1").orderByAsc(CourtEntity::getId));
     }

@@ -14,7 +14,7 @@ public class ReptileApplication {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext applicationContext = SpringApplication.run(ReptileApplication.class, args);
-   /*     CpwsService cpwsService = applicationContext.getBean(CpwsService.class);
+     /*   CpwsService cpwsService = applicationContext.getBean(CpwsService.class);
         try {
             cpwsService.login();
             cpwsService.params();

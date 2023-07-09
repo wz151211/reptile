@@ -10,15 +10,18 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-@TableName(value = "pku_judicial_cases")
+@TableName(value = "pkulaw_judicial_cases")
 public class JudicialCasesEntity {
 
 
     @TableId(type = IdType.AUTO)
-    private String id;
+    private Integer id;
 
-    @TableField("title")
-    private String title;
+    @TableField("name")
+    private String name;
+
+    @TableField("gid")
+    private String gid;
 
     @TableField("cause")
     private String cause;
@@ -38,8 +41,8 @@ public class JudicialCasesEntity {
     @TableField("court")
     private String court;
 
-    @TableField("conclusion_date")
-    private Date conclusionDate;
+    @TableField("referee_date")
+    private Date refereeDate;
 
     @TableField("case_type")
     private String caseType;
@@ -53,9 +56,15 @@ public class JudicialCasesEntity {
     @TableField("keyword")
     private String keyword;
 
+    @TableField("case_grade")
+    private String caseGrade;
+
     @TableField("html")
     private String html;
 
-    @TableField("content")
-    private String content;
+  /*  @TableField("content")
+    private String content;*/
+
+    @TableField("create_time")
+    private Date createTime;
 }
