@@ -144,19 +144,21 @@ public class PkulawService {
             DateTime now = DateUtil.date();
             long minutes = DateUtil.between(start, now, DateUnit.MINUTE);
             if (minutes >= 240 && minutes <= 260) {
-                log.info("休息1小时");
-                TimeUnit.HOURS.sleep(1);
-                start = DateUtil.offsetMinute(start, 300);
+                log.info("休息30分钟");
+                TimeUnit.MINUTES.sleep(30);
+                start = DateUtil.offsetMinute(start, 270);
             }
             if (count.get() >= 10000) {
                 log.info("休息了，数量已到限制");
                 TimeUnit.HOURS.sleep(6);
+                count.set(0);
 
             }
             long hours = DateUtil.between(time, now, DateUnit.HOUR);
             if (hours >= 10) {
                 log.info("休息了，时间已到限制");
-                TimeUnit.HOURS.sleep(6);
+                TimeUnit.HOURS.sleep(2);
+                time = DateUtil.date();
             }
             TimeUnit.SECONDS.sleep(5);
             response = request(config.getUrl(), JSON.toJSONString(pkulaw));
@@ -247,9 +249,8 @@ public class PkulawService {
                             e.printStackTrace();
                         }
                     }
-                    TimeUnit.SECONDS.sleep(RandomUtil.randomInt(1, 10));
                     executor.execute(() -> details(entity));
-                    // details(entity);
+                    //  details(entity);
                 } else {
                     String timelinessDic = null;
                     for (SummaryVo summary : vo.getSummaries()) {
@@ -301,7 +302,7 @@ public class PkulawService {
         log.info("线程池中任务数量={}", executor.getQueue().size());
 
         try (final WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED)) {
-            //  TimeUnit.SECONDS.sleep(3);
+            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(1, 10));
             webClient.getOptions().setCssEnabled(false);
             webClient.getOptions().setJavaScriptEnabled(true);
             webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);

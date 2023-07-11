@@ -238,7 +238,6 @@ public class ProcuratorateService {
                             e.printStackTrace();
                         }
                     }
-                    TimeUnit.SECONDS.sleep(RandomUtil.randomInt(1, 10));
                     executor.execute(() -> details(entity));
                     //  details(entity);
                 }
@@ -269,7 +268,7 @@ public class ProcuratorateService {
         log.info("线程池中任务数量={}", executor.getQueue().size());
 
         try (final WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED)) {
-            //  TimeUnit.SECONDS.sleep(3);
+            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(1, 10));
             webClient.getOptions().setCssEnabled(false);
             webClient.getOptions().setJavaScriptEnabled(true);
             webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);

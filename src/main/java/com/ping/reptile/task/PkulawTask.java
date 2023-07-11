@@ -22,7 +22,7 @@ public class PkulawTask {
     @Autowired
     private JudicialCasesService judicialCasesService;
 
-    //  @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
+    @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
     public void document() {
         try {
             pkulawService.page(0, 100);
@@ -40,7 +40,7 @@ public class PkulawTask {
         }
     }
 
-    @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
+    // @Scheduled(initialDelay = 3 * 1000L, fixedRate = 1000 * 60 * 60 * 24L)
     public void judicialCases() {
         try {
             judicialCasesService.page(0, 100);
