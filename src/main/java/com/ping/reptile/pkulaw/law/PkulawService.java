@@ -150,7 +150,7 @@ public class PkulawService {
             }
             if (count.get() >= 10000) {
                 log.info("休息了，数量已到限制");
-                TimeUnit.HOURS.sleep(6);
+                TimeUnit.HOURS.sleep(2);
                 count.set(0);
 
             }
