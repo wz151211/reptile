@@ -57,13 +57,6 @@ class ReptileApplicationTests {
     private CasePunishService casePunishService;
 
     @Autowired
-    private PkulawService_bak pkulawService;
-
-    @Autowired
-    private PkulawUpdateService updateService;
-
-
-    @Autowired
     private UpdateDocumentService updateDocumentService;
 
     @Autowired
@@ -86,16 +79,6 @@ class ReptileApplicationTests {
     @Test
     public void casePunish() {
         casePunishService.page(1, 150);
-    }
-
-    @Test
-    public void pkulawPunish() {
-        pkulawService.page(0, 100);
-    }
-
-    @Test
-    public void updatePunish() {
-        updateService.list();
     }
 
     @Test

@@ -154,12 +154,6 @@ public class PkulawService {
                 count.set(0);
 
             }
-            long hours = DateUtil.between(time, now, DateUnit.HOUR);
-            if (hours >= 10) {
-                log.info("休息了，时间已到限制");
-                TimeUnit.HOURS.sleep(2);
-                time = DateUtil.date();
-            }
             TimeUnit.SECONDS.sleep(5);
             response = request(config.getUrl(), JSON.toJSONString(pkulaw));
         } catch (Exception e) {

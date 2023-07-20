@@ -1,5 +1,4 @@
-package com.ping.reptile.pkulaw.procuratorate;
-
+package com.ping.reptile.pkulaw.punish;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
@@ -12,6 +11,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.ping.reptile.common.properties.CustomProperties;
 import com.ping.reptile.mapper.PkuConfigMapper;
+import com.ping.reptile.mapper.PunishMapper;
 import com.ping.reptile.model.entity.PkuConfigEntity;
 import com.ping.reptile.model.vo.Item;
 import com.ping.reptile.model.vo.Node;
@@ -19,10 +19,12 @@ import com.ping.reptile.model.vo.Pkulaw;
 import com.ping.reptile.pkulaw.law.vo.PkulawVo;
 import com.ping.reptile.pkulaw.law.vo.Result;
 import com.ping.reptile.pkulaw.law.vo.SummaryVo;
-import com.ping.reptile.pkulaw.law.vo.TimelinessVo;
-import com.ping.reptile.pkulaw.procuratorate.vo.ProcuratorateEntity;
+import com.ping.reptile.pkulaw.punish.vo.AreaEntity;
+import com.ping.reptile.pkulaw.punish.vo.PunishEntity;
 import com.ping.reptile.utils.IpUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.ansj.domain.Term;
+import org.ansj.splitWord.analysis.ToAnalysis;
 import org.apache.commons.lang3.StringUtils;
 import org.htmlunit.BrowserVersion;
 import org.htmlunit.CookieManager;
@@ -49,13 +51,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
-public class ProcuratorateService {
+public class PkulawPunishService {
     @Autowired
     private CustomProperties properties;
     @Autowired
     private PkuConfigMapper pkuConfigMapper;
     @Autowired
-    private ProcuratorateMapper procuratorateMapper;
+    private PkulawPunishMapper punishMapper;
+    @Autowired
+    private AreaTempService areaService;
 
     private Pkulaw pkulaw;
 
@@ -63,9 +67,9 @@ public class ProcuratorateService {
 
     private PkuConfigEntity config = null;
     private LocalDate date = null;
-    private DateTime start = DateUtil.date();
     private int min = 5;
     private int max = 10;
+    private DateTime start = DateUtil.date();
     private DateTime time = DateUtil.date();
     private AtomicInteger count = new AtomicInteger(0);
     private AtomicInteger days = new AtomicInteger(0);
@@ -153,6 +157,8 @@ public class ProcuratorateService {
             if (count.get() >= 10000) {
                 log.info("休息了，数量已到限制");
                 TimeUnit.HOURS.sleep(2);
+                count.set(0);
+
             }
             TimeUnit.SECONDS.sleep(5);
             response = request(config.getUrl(), JSON.toJSONString(pkulaw));
@@ -179,13 +185,15 @@ public class ProcuratorateService {
                /*     boolean token = refreshToken();
                     if (!token) {
                         TimeUnit.HOURS.sleep(2);
-                    }*/
+                    }
+                */
                     list(pageNum, pageSize);
                 }
                 if (response.body().contains("您的请求已被该站点的安全策略拦截")) {
                     log.info("您的请求已被该站点的安全策略拦截");
                     stop.set(true);
-                    TimeUnit.HOURS.sleep(6);
+                    int hour = DateUtil.date().hour(true);
+                    TimeUnit.HOURS.sleep(24 - hour);
                 }
             }
             if (result == null || result.getData() == null) {
@@ -208,26 +216,29 @@ public class ProcuratorateService {
             log.info("列表数量={}", result.getData().size());
             tatal = result.getData().size();
             for (PkulawVo vo : result.getData()) {
-                long count = procuratorateMapper.selectCount(Wrappers.<ProcuratorateEntity>lambdaQuery().eq(ProcuratorateEntity::getGid, vo.getGid()));
+                long count = punishMapper.getCountById(vo.getGid());
                 if (count == 0) {
-                    ProcuratorateEntity entity = new ProcuratorateEntity();
+                    PunishEntity entity = new PunishEntity();
                     entity.setTitle(vo.getTitle());
-                    entity.setGid(vo.getGid());
-                    for (SummaryVo summary : vo.getSummaries()) {
-                        if (summary.getText().contains("号")) {
-                            entity.setCaseNo(summary.getText());
-                        }
-                        if (summary.getText().contains("检察院")) {
-                            entity.setProcuratorate(summary.getText());
-                        }
-                        if (summary.getText().contains(".")) {
-                            entity.setDate(summary.getText());
+                    entity.setId(vo.getGid());
+                    List<SummaryVo> summaries = vo.getSummaries();
+                    if (summaries != null && summaries.size() > 0) {
+                        try {
+                            entity.setPunishUnit(summaries.get(0).getText());
+                            entity.setCaseNo(summaries.get(1).getText());
+                            try {
+                                String date = summaries.get(2).getText().replace("发布", "");
+                                date = date.replace(".", "-");
+                                if (StringUtils.isNotEmpty(date)) {
+                                    entity.setPunishDate(DateUtil.offsetHour(DateUtil.parse(date, DateTimeFormatter.ISO_LOCAL_DATE), 8));
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
-                    for (TimelinessVo section : vo.getSections()) {
-                        entity.setConsidered(section.getValue());
-                    }
-
                     if (executor.getQueue().size() > 50) {
                         try {
                             TimeUnit.MINUTES.sleep(3);
@@ -236,8 +247,8 @@ public class ProcuratorateService {
                         }
                     }
                     executor.execute(() -> details(entity));
-                    //  details(entity);
                 }
+                //  details(entity);
             }
             if (tatal >= pageSize) {
                 list(pageNum + 1, pageSize);
@@ -261,7 +272,7 @@ public class ProcuratorateService {
 
     }
 
-    public void details(ProcuratorateEntity entity) {
+    public void details(PunishEntity entity) {
         log.info("线程池中任务数量={}", executor.getQueue().size());
 
         try (final WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED)) {
@@ -301,7 +312,7 @@ public class ProcuratorateService {
                 cookieManager.addCookie(cookie11);
             }
             webClient.setCookieManager(cookieManager);
-            String url = config.getUrl().replace("searchingapi/list/advanced/", "") + "/" + entity.getGid() + ".html";
+            String url = config.getUrl().replace("searchingapi/list/advanced/", "") + "/" + entity.getId() + ".html";
             HtmlPage page = webClient.getPage(url);
             Document parse = Jsoup.parse(page.asXml());
             Element element = parse.getElementById("gridleft");
@@ -311,10 +322,12 @@ public class ProcuratorateService {
                     element = parse.getElementById("gridleft");
                     if (element == null) {
                         if (parse.text().contains("检测到您所使用的IP存在风险")) {
+                            stop.set(true);
                             log.info("IP被封");
                             TimeUnit.HOURS.sleep(6);
                         }
                         if (parse.text().contains("您的账号存在安全风险已被限制访问")) {
+                            stop.set(true);
                             log.info("账号被限制访问");
                             TimeUnit.HOURS.sleep(6);
                         }
@@ -340,8 +353,8 @@ public class ProcuratorateService {
                 }
                 if (parse.text().contains("您的请求已被该站点的安全策略拦截")) {
                     log.info("您的请求已被该站点的安全策略拦截");
-                    int hour = DateUtil.date().hour(true);
                     stop.set(true);
+                    int hour = DateUtil.date().hour(true);
                     TimeUnit.HOURS.sleep(24 - hour);
                 }
             } catch (Exception ex) {
@@ -372,44 +385,77 @@ public class ProcuratorateService {
                 if (StringUtils.isEmpty(value)) {
                     value = span.firstElementChild().ownText();
                 }
+
+                if (StringUtils.isEmpty(value)) {
+                    for (Element element1 : span.getElementsByTag("span")) {
+                        value += element1.ownText() + ",";
+                    }
+
+                }
                 if (StringUtils.isNotEmpty(value)) {
                     if (StringUtils.isNotEmpty(value) && value.contains(",")) {
                         value = value.substring(0, value.length() - 1);
                     }
                 }
-                if (name.contains("案由")) {
-                    entity.setCause(value);
+                if (name.contains("主题分类")) {
+                    entity.setTheme(value);
                 }
-                if (name.contains("文书编号") && StringUtils.isEmpty(entity.getCaseNo())) {
+                if (name.contains("处罚种类")) {
+                    entity.setCategory(value);
+                }
+                if (name.contains("处罚对象")) {
+                    entity.setPunishmentTarget(value);
+                }
+                if (name.contains("执法级别")) {
+                    entity.setLevel(value);
+                }
+                if (name.contains("处罚机关") && StringUtils.isEmpty(entity.getPunishUnit())) {
+                    entity.setPunishUnit(value);
+                }
+                if (name.contains("执法地域")) {
+                    entity.setArea(value);
+                }
+                if (name.contains("处罚日期") && entity.getPunishDate() == null) {
+                    try {
+                        String date = value.replace(".", "-");
+                        if (StringUtils.isNotEmpty(date)) {
+                            entity.setPunishDate(DateUtil.offsetHour(DateUtil.parse(date, DateTimeFormatter.ISO_LOCAL_DATE), 8));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (name.contains("发文案号") && StringUtils.isEmpty(entity.getCaseNo())) {
                     entity.setCaseNo(value);
                 }
-                if (name.contains("文书类型")) {
-                    entity.setDocType(value);
-                }
-                if (name.contains("发布日期")) {
-                    entity.setReleaseDate(value);
-                }
-                if (name.contains("日期") && StringUtils.isEmpty(entity.getDate())) {
-                    entity.setDate(value);
-                }
-                if (name.contains("检察院") && StringUtils.isEmpty(entity.getProcuratorate())) {
-                    entity.setProcuratorate(value);
-                }
-                if (name.contains("检察业务")) {
-                    entity.setBusiness(value);
+                if (name.contains("处罚依据")) {
+
+                    StringBuilder text = new StringBuilder();
+                    text.append(value).append("，");
+                    int index = i;
+                    if (index + 1 < spans.size()) {
+                        for (int i1 = index + 1; i1 < spans.size(); i1++) {
+                            Element element1 = spans.get(i1);
+                            text.append(element1.text()).append("，");
+                        }
+                    }
+                    entity.setBasis(text.substring(0, text.length() - 1));
                 }
             }
-            entity.setContent(element.html());
+            entity.setHtml(element.html());
             log.info("案件名称={}", entity.getTitle());
-            entity.setCreateTime(new Date());
+            entity.setCreateTime(DateUtil.offsetHour(new Date(), 8));
+            parseAddress(entity, entity.getArea());
+            if (StringUtils.isEmpty(entity.getProvince()) && StringUtils.isEmpty(entity.getCity())) {
+                parseAddress(entity, entity.getPunishUnit());
+            }
             try {
-                procuratorateMapper.insert(entity);
+                punishMapper.save(entity);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } catch (Exception e) {
-            log.error("gid={}", entity.getGid());
-            e.printStackTrace();
+            log.error("gid={}", entity.getId());
             try {
                 TimeUnit.SECONDS.sleep(20);
             } catch (InterruptedException ex) {
@@ -468,5 +514,81 @@ public class ProcuratorateService {
                 .header("Upgrade-Insecure-Requests", "1")
                 .header("Customrequest", "CustomRequest/list/advanced")
                 .execute();
+    }
+
+
+    private void parseAddress(PunishEntity party, String address) {
+        if (party == null || StringUtils.isEmpty(address)) {
+            return;
+        }
+        for (Term term : ToAnalysis.parse(address)) {
+            if (term.getRealName().contains("省") || term.getRealName().contains("自治区") || term.getRealName().contains("兵团")) {
+                if (StringUtils.isEmpty(party.getProvince())) {
+                    party.setProvince(term.getRealName());
+                }
+            }
+            if (term.getRealName().contains("市") || term.getRealName().contains("盟") || term.getRealName().contains("自治州")) {
+                if (term.getRealName().length() <= 1) {
+                    StringBuilder city = new StringBuilder();
+                    Term temp = term;
+                    for (int i = 0; i < 10; i++) {
+                        if (temp == null || temp.getRealName().equals("BEGIN")) {
+                            continue;
+                        }
+                        String name = temp.getRealName();
+                        if (name.contains("省") || name.contains("自治区") || name.contains("兵团")) {
+                            break;
+                        }
+                        city.insert(0, name);
+                        temp = temp.from();
+                    }
+                    if (StringUtils.isEmpty(party.getCity())) {
+                        party.setCity(city.toString());
+                    }
+                } else {
+                    if (StringUtils.isEmpty(party.getCity())) {
+                        party.setCity(term.getRealName());
+                    }
+                }
+            }
+
+            if (term.getRealName().contains("县") || term.getRealName().contains("旗") || (term.getRealName().contains("区") && !term.getRealName().contains("自治区"))) {
+                if (term.getRealName().length() <= 2 || term.getRealName().equals("开发区") || term.getRealName().equals("工业区")) {
+                    StringBuilder county = new StringBuilder();
+                    Term temp = term;
+                    for (int i = 0; i < 10; i++) {
+                        if (temp == null || temp.getRealName().equals("BEGIN")) {
+                            continue;
+                        }
+                        String name = temp.getRealName();
+                        if (name.contains("省") || name.contains("自治区") || name.contains("兵团") || name.contains("市") || name.contains("盟") || name.contains("自治州") || name.contains("住所地")) {
+                            break;
+                        }
+                        //    county.append(name).append("&");
+                        county.insert(0, name);
+                        temp = temp.from();
+                    }
+                    if (StringUtils.isEmpty(party.getCounty())) {
+                        party.setCounty(county.toString());
+                    }
+                } else {
+                    if (StringUtils.isEmpty(party.getCounty())) {
+                        party.setCounty(term.getRealName());
+                    }
+                }
+            }
+            AreaEntity entity = areaService.find(party.getCity(), party.getCounty());
+            if (entity != null) {
+                if (StringUtils.isEmpty(party.getProvince())) {
+                    party.setProvince(entity.getProvince());
+                }
+                if (StringUtils.isEmpty(party.getCity())) {
+                    party.setCity(entity.getCity());
+                }
+                if (StringUtils.isEmpty(party.getCounty())) {
+                    party.setCounty(entity.getCounty());
+                }
+            }
+        }
     }
 }

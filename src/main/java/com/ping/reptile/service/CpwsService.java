@@ -85,7 +85,7 @@ public class CpwsService {
         options.addArguments("--no-sandbox");
         options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
         options.addArguments("--disable-blink-features=AutomationControlled");
-   /*     driver = new ChromeDriver(options);
+    /*    driver = new ChromeDriver(options);
         webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));*/
 
     }
@@ -199,9 +199,9 @@ public class CpwsService {
                 login();
             }
             configTempEntity = configTempMapper.selectById(properties.getId());
-            if (configTempEntity.getSearchType() == 1) {
+           /* if (configTempEntity.getSearchType() == 1) {
                 driver.get("https://wenshu.court.gov.cn/website/wenshu/181217BMTKHNT2W0/index.html?pageId=4647c8aea1988975461858e2baf76e66");
-            }
+            }*/
             if (date == null) {
                 date = LocalDate.parse(configTempEntity.getRefereeDate(), DateTimeFormatter.ISO_LOCAL_DATE);
             }
@@ -301,7 +301,7 @@ public class CpwsService {
                 searchBtn.click();
             }
             TimeUnit.SECONDS.sleep(3);
-            if (configTempEntity.getSearchType() == 1) {
+            if (configTempEntity.getSearchType() == 3) {
                 CourtEntity court = courtMapper.findByName(courtName);
                 if (StringUtils.isEmpty(courtName) || court == null) {
                     court = courtMapper.getCourt();

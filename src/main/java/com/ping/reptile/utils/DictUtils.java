@@ -63,6 +63,8 @@ public class DictUtils {
 
 
         causeMap.put("盗掘古文化遗址、古墓葬罪", "283");
+        causeMap.put("虚开增值税专用发票、用于骗取出口退税、抵扣税款发票罪", "132");
+        causeMap.put("虚开发票罪", "4148");
 
 
 
