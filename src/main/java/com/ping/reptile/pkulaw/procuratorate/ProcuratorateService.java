@@ -301,7 +301,7 @@ public class ProcuratorateService {
                 cookieManager.addCookie(cookie11);
             }
             webClient.setCookieManager(cookieManager);
-            String url = config.getUrl().replace("searchingapi/list/advanced/", "") + "/" + entity.getGid() + ".html";
+            String url = config.getUrl().replace("searchingapi/adv/list", "") + "/" + entity.getGid() + ".html";
             HtmlPage page = webClient.getPage(url);
             Document parse = Jsoup.parse(page.asXml());
             Element element = parse.getElementById("gridleft");
