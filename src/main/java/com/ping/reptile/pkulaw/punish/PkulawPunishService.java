@@ -312,7 +312,7 @@ public class PkulawPunishService {
                 cookieManager.addCookie(cookie11);
             }
             webClient.setCookieManager(cookieManager);
-            String url = config.getUrl().replace("searchingapi/list/advanced/", "") + "/" + entity.getId() + ".html";
+            String url = config.getUrl().replace("searchingapi/adv/list/", "") + "/" + entity.getId() + ".html";
             HtmlPage page = webClient.getPage(url);
             Document parse = Jsoup.parse(page.asXml());
             Element element = parse.getElementById("gridleft");
@@ -442,7 +442,10 @@ public class PkulawPunishService {
                     entity.setBasis(text.substring(0, text.length() - 1));
                 }
             }
-            entity.setHtml(element.html());
+            Element fullText = element.getElementById("divFullText");
+            if (fullText != null) {
+                entity.setHtml(fullText.html());
+            }
             log.info("案件名称={}", entity.getTitle());
             entity.setCreateTime(DateUtil.offsetHour(new Date(), 8));
             parseAddress(entity, entity.getArea());
@@ -455,6 +458,7 @@ public class PkulawPunishService {
                 e.printStackTrace();
             }
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("gid={}", entity.getId());
             try {
                 TimeUnit.SECONDS.sleep(20);

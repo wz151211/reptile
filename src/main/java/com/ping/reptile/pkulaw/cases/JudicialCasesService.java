@@ -422,7 +422,10 @@ public class JudicialCasesService {
                 }
 
             }
-            entity.setHtml(element.html());
+            Element fullText = element.getElementById("divFullText");
+            if (fullText != null) {
+                entity.setHtml(fullText.html());
+            }
             log.info("案件名称={}", entity.getName());
             entity.setCreateTime(new Date());
             try {

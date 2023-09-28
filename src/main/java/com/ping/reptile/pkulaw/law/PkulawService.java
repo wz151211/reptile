@@ -232,6 +232,12 @@ public class PkulawService {
                         if (summary.getText().contains("公布")) {
                             entity.setIssueDate(summary.getText().replace("公布", ""));
                         }
+                        if (summary.getText().contains("颁布")) {
+                            entity.setIssueDate(summary.getText().replace("颁布", ""));
+                        }
+                        if (summary.getText().contains("刊登")) {
+                            entity.setIssueDate(summary.getText().replace("刊登", ""));
+                        }
                         if (summary.getText().contains("施行")) {
                             entity.setImplementDate(summary.getText().replace("施行", ""));
                         }
@@ -250,6 +256,8 @@ public class PkulawService {
                     for (SummaryVo summary : vo.getSummaries()) {
                         if (summary.getText().contains("现行有效")
                                 || summary.getText().contains("失效")
+                                || summary.getText().contains("现行")
+                                || summary.getText().contains("废止")
                                 || summary.getText().contains("已被修改")
                                 || summary.getText().contains("尚未生效")
                                 || summary.getText().contains("尚未施行")
@@ -332,7 +340,7 @@ public class PkulawService {
                 cookieManager.addCookie(cookie11);
             }
             webClient.setCookieManager(cookieManager);
-            String url = config.getUrl().replace("searchingapi/list/advanced/", "") + "/" + entity.getGid() + ".html";
+            String url = config.getUrl().replace("searchingapi/adv/list/", "") + "/" + entity.getGid() + ".html";
             HtmlPage page = webClient.getPage(url);
             Document parse = Jsoup.parse(page.asXml());
             Element element = parse.getElementById("gridleft");
@@ -410,19 +418,19 @@ public class PkulawService {
                         value = value.substring(0, value.length() - 1);
                     }
                 }
-                if (name.contains("制定机关")) {
+                if (name.contains("制定机关") || name.contains("相关组织") || name.contains("新闻来源") || name.contains("官方合同") || name.contains("发布部门")) {
                     entity.setIssueDepartment(value);
                 }
-                if (name.contains("效力位阶")) {
+                if (name.contains("效力位阶") || name.contains("法规位阶")) {
                     entity.setEffectivenessDic(value);
                 }
-                if (name.contains("法规类别")) {
+                if (name.contains("法规类别") || name.contains("条约种类") || name.contains("法规分类") || name.contains("法規分類") || name.contains("新闻分类") || name.contains("合同分类") || name.contains("行业类别") || name.contains("文书分类")) {
                     entity.setCategory(value);
                 }
                 if (name.contains("类别") && StringUtils.isEmpty(entity.getCategory())) {
                     entity.setCategory(value);
                 }
-                if (name.contains("专题分类")) {
+                if (name.contains("专题分类") || name.contains("条约领域") || name.contains("類別")) {
                     entity.setTopicType(value);
                 }
                 if (name.contains("批准机关")) {
@@ -434,8 +442,14 @@ public class PkulawService {
                 if (name.contains("失效依据")) {
                     entity.setInvalidBasis(value);
                 }
+                if (name.contains("颁布日期") || name.contains("刊登日期")) {
+                    entity.setIssueDate(value);
+                }
             }
-            entity.setAllText(element.html());
+            Element fullText = element.getElementById("divFullText");
+            if (fullText != null) {
+                entity.setAllText(fullText.html());
+            }
             log.info("案件名称={}", entity.getTitle());
             entity.setCreateTime(new Date());
             try {

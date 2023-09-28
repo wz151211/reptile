@@ -9,7 +9,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-@TableName("pkulaw_law")
+@TableName("pkulaw_law2")
 public class PkulawEntity {
 
     @TableId(type = IdType.AUTO)

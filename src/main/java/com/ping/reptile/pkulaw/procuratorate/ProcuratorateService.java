@@ -327,6 +327,12 @@ public class ProcuratorateService {
                     int hour = DateUtil.date().hour(true);
                     TimeUnit.HOURS.sleep(24 - hour);
                 }
+                if (element.text().contains("剩余100%未阅读")) {
+                    log.info("账号未登录");
+                    stop.set(true);
+                    int hour = DateUtil.date().hour(true);
+                    TimeUnit.HOURS.sleep(24 - hour);
+                }
                 if (element.text().contains("今日正文查看数已满")) {
                     log.info("访问数量已经到达上限");
                     stop.set(true);
@@ -347,8 +353,17 @@ public class ProcuratorateService {
             } catch (Exception ex) {
                 //  ex.printStackTrace();
             }
-            Element fields = element.getElementsByClass("fields").get(0);
-            Elements spans = fields.getElementsByTag("li");
+            Element fields = null;
+            Elements spans = new Elements();
+            try {
+                fields = element.getElementsByClass("fields").get(0);
+                spans = fields.getElementsByTag("li");
+            } catch (Exception e) {
+                log.error("获取详情出错", e);
+                log.error("获取详情出错-html-{}", element.html());
+                e.printStackTrace();
+            }
+
 
             for (int i = 0; i < spans.size(); i++) {
                 String value = "";
@@ -399,17 +414,20 @@ public class ProcuratorateService {
                     entity.setBusiness(value);
                 }
             }
-            entity.setContent(element.html());
+            Element fullText = element.getElementById("divFullText");
+            if (fullText != null) {
+                entity.setContent(fullText.html());
+            }
             log.info("案件名称={}", entity.getTitle());
             entity.setCreateTime(new Date());
             try {
                 procuratorateMapper.insert(entity);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("保存详情出错", e);
             }
         } catch (Exception e) {
             log.error("gid={}", entity.getGid());
-            e.printStackTrace();
+            log.error("获取详情出错", e);
             try {
                 TimeUnit.SECONDS.sleep(20);
             } catch (InterruptedException ex) {
