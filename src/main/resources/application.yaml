@@ -25,7 +25,8 @@ spring:
     name: reptile
   data:
     mongodb:
-      uri: mongodb://root:documentABC@47.93.2.53:27017/cpws?authSource=admin
+     # uri: mongodb://root:documentABC@47.93.2.53:27017/cpws?authSource=admin
+      uri: mongodb://localhost:27017/ws
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
@@ -35,7 +36,7 @@ logging:
     name: ./log/${spring.application.name}.log
 
 custom:
-  id: 8
+  id: 1
   intervalDays: 0
   category: 1
 server:

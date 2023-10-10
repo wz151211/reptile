@@ -449,6 +449,7 @@ public class PkulawService {
             Element fullText = element.getElementById("divFullText");
             if (fullText != null) {
                 entity.setAllText(fullText.html());
+                entity.setText(fullText.text());
             }
             log.info("案件名称={}", entity.getTitle());
             entity.setCreateTime(new Date());

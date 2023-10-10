@@ -1,4 +1,4 @@
-package com.ping.reptile.pkulaw.law.vo;
+package com.ping.reptile.temp;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -9,10 +9,9 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-@TableName("pkulaw_law")
-public class PkulawEntity {
-
-    @TableId(type = IdType.AUTO)
+@TableName("pkulaw_law_new")
+public class UpdateHtmlEntity {
+    @TableId(type = IdType.INPUT)
     private Integer id;
 
     @TableField("library")
@@ -71,5 +70,4 @@ public class PkulawEntity {
 
     @TableField("update_time")
     private Date updateTime;
-
 }

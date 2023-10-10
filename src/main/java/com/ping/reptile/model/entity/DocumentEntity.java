@@ -13,7 +13,7 @@ import java.util.Date;
  * @Date: 2022/8/21 22:27
  */
 @Data
-@TableName(value = "document")
+@TableName(value = "document_2019_2020")
 public class DocumentEntity {
 
     @TableId(type = IdType.INPUT)

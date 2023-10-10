@@ -66,7 +66,7 @@ public class PkulawTask {
     @Autowired
     private UpdatePkuLaw updatePkuLaw;
 
-    //  @Scheduled(initialDelay = 3 * 1000L, fixedRate = 30L)
+    // @Scheduled(initialDelay = 3 * 1000L, fixedRate = 30L)
     public void updatePkuLaw() {
         try {
             updatePkuLaw.testUpdate();

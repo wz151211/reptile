@@ -50,8 +50,6 @@ class ReptileApplicationTests {
 
     @Autowired
     private DocumentService documentService;
-    @Autowired
-    private PunishService punishService;
 
     @Autowired
     private CasePunishService casePunishService;
@@ -71,10 +69,10 @@ class ReptileApplicationTests {
     }
 
 
-    @Test
+/*    @Test
     public void punish() {
         punishService.page(1, 15);
-    }
+    }*/
 
     @Test
     public void casePunish() {
@@ -307,10 +305,10 @@ class ReptileApplicationTests {
         List<DocumentEntity> entities = documentMapper.selectList(Wrappers.lambdaQuery());
         for (DocumentEntity entity : entities) {
             String htmlContent = entity.getHtmlContent();
-            String docPath = "D:\\pc\\" + entity.getName() + ".docx";
+            String docPath = "D:\\pc\\2020\\" + entity.getCaseNo() + "-" + entity.getName() + ".docx";
             File file = new File(docPath);
             if (file.exists()) {
-                docPath = "D:\\pc\\" + entity.getName() + "-" + RandomUtil.randomString(5) + ".docx";
+                docPath = "D:\\pc\\2020\\" + entity.getCaseNo() + "-" + entity.getName() + "-" + RandomUtil.randomString(5) + ".docx";
             }
             htmlAsAltChunk2Docx(htmlContent, docPath);
         }
