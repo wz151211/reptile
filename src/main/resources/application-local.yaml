@@ -2,11 +2,10 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
-  #  url: jdbc:mysql://47.95.218.217:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
-  #  username: root
-  #  password: document@ABC
-    url: jdbc:mysql://127.0.0.1:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
+    #url: jdbc:mysql://172.16.121.77:3306/judgements?useSSL=false&useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://localhost:3306/judgements?useSSL=false&useUnicode=true&characterEncoding=utf-8
     username: root
+    #password: '!root'
     password: 123456
     druid:
       initial-size: 30
@@ -23,21 +22,24 @@ spring:
       max-pool-prepared-statement-per-connection-size: 10
   application:
     name: reptile
-  data:
-    mongodb:
-       # uri: mongodb://root:documentABC@47.93.2.53:27017/cpws?authSource=admin
-      uri: mongodb://localhost:27017/ws
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
     map-underscore-to-camel-case: true
 logging:
   file:
+    max-history: 30
+    max-size: 10MB
     name: ./log/${spring.application.name}.log
-
+  level:
+    cn:
+      com.ping.reptile: info
+    root: info
 custom:
-  id: 2
-  intervalDays: 0
+  id: 1
   category: 1
+  intervalDays: 1000
+  min: 10
+  max: 20
 server:
-  port: 9002
+  port: 8001

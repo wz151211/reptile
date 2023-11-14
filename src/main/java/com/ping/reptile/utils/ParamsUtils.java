@@ -17,7 +17,7 @@ public class ParamsUtils {
     public static String getPageId() {
         String pageId = "";
         for (int i = 1; i <= 32; i++) {
-            String n = Long.toHexString(Math.round(Math.floor(Math.random() * 16)));
+            String n = Double.toHexString(Math.floor(Math.floor(Math.random() * 16.0)));
             pageId += n;
         }
         return pageId;

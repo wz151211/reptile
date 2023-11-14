@@ -32,6 +32,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,6 +66,13 @@ public class DocumentService {
     private AtomicInteger intervalDays = new AtomicInteger(0);
 
     private List<ConfigEntity> configList = null;
+
+    private ThreadPoolExecutor executor = new ThreadPoolExecutor(50,
+            100,
+            30,
+            TimeUnit.MINUTES,
+            new LinkedBlockingQueue<>(),
+            new ThreadPoolExecutor.CallerRunsPolicy());
 
     {
         try {
@@ -116,11 +125,11 @@ public class DocumentService {
         intervalDays.set(RandomUtil.randomInt(properties.getIntervalDays() / 2, properties.getIntervalDays()));
         list(pageNum, pageSize);
         days.getAndAdd(intervalDays.get());
-        try {
+   /*     try {
             TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
         } catch (InterruptedException ex) {
             ex.printStackTrace();
-        }
+        }*/
         page(pageNum, pageSize);
     }
 
@@ -232,7 +241,7 @@ public class DocumentService {
                 count = jsonArray.size();
                 log.info("列表数量={}", jsonArray.size());
                 if (jsonArray.size() == 0) {
-                    TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
+                   // TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
                     return;
                 }
                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -245,10 +254,10 @@ public class DocumentService {
                     }
                     String docId = obj.getString("rowkey");
                     String token = ParamsUtils.random(24);
-                    detail(docId, token);
+                   executor.execute(()->detail(docId, token)); ;
                 }
             }
-            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
+          //  TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             if (count >= pageSize) {
                 list(pageNum + 1, pageSize);
             }
@@ -262,7 +271,7 @@ public class DocumentService {
                 }
                 log.error("列表获取出错", e);
 
-                TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
+               // TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -277,7 +286,7 @@ public class DocumentService {
     public void detail(String docId, String token) {
         HttpResponse response = null;
         try {
-            TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
+          //  TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             try {
             //    user(docId, token);
             } catch (Exception e) {
@@ -404,7 +413,7 @@ public class DocumentService {
                     }
                 }
                 log.error("详情获取出错", e);
-                TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
+              //  TimeUnit.SECONDS.sleep(RandomUtil.randomInt(min, max));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
