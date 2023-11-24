@@ -43,6 +43,9 @@ public class PunishEntity {
     @TableField("content")
     private String content;
 
+    @TableField("base64Content")
+    private String base64Content;
+
     @TableField("theme")
     private String theme;
 
@@ -51,6 +54,9 @@ public class PunishEntity {
 
     @TableField("area_name")
     private String areaName;
+
+    @TableField("create_time")
+    private Date createTime;
 
 
 }

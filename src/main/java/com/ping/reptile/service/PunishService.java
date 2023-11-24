@@ -25,6 +25,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -43,6 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 @Slf4j
+@Service
 public class PunishService {
     @Autowired
     private PunishMapper punishMapper;
@@ -104,44 +106,75 @@ public class PunishService {
             pageSize = config.getPageSize();
         }
         if (date == null) {
-          //  date = LocalDate.parse(config.getPunishDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+            date = LocalDate.parse(config.getDocDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
+
         for (Dict a : areas) {
             Map<String, Object> params = new HashMap<>();
             params.put("pageSize", pageSize);
             params.put("pageNum", pageNum);
             params.put("sortFields", "23_s:asc,16_s:asc");
             params.put("ciphertext", ParamsUtils.cipher());
+            ;
+            LocalDate start = date.minusDays(days.get() + properties.getIntervalDays());
+            LocalDate end = date.minusDays(days.get());
+            String startDate = start.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
+            String endDate = end.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
             Param punishDate = new Param();
-            String format = date.minusDays(days.get()).format(DateTimeFormatter.ISO_LOCAL_DATE);
-            punishDate.setId(format + "," + format);
+            punishDate.setId(startDate + "," + endDate);
             punishDate.setKey("23_s");
 
             Param area = new Param();
             area.setId(a.getCode());
             area.setKey("17_s");
 
-            String param = JSON.toJSONString(Lists.newArrayList(area));
+            String param = JSON.toJSONString(Lists.newArrayList(area,punishDate));
             log.info("列表请求参数 {}", param);
             params.put("queryCondition", param);
-            try {
-                TimeUnit.SECONDS.sleep(4);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    list(params);
-                }
-            });
+            // try {
+            //     TimeUnit.SECONDS.sleep(4);
+            // } catch (InterruptedException e) {
+            //     e.printStackTrace();
+            // }
+
+            list(params);
 
             //  list(params, t.getName(), th.getName(), a.getCode(), a.getName());
 
 
         }
-        days.getAndIncrement();
 
+
+        // Map<String, Object> params = new HashMap<>();
+        // params.put("pageSize", pageSize);
+        // params.put("pageNum", pageNum);
+        // params.put("sortFields", "23_s:asc,16_s:asc");
+        // params.put("ciphertext", ParamsUtils.cipher());
+        // ;
+        // LocalDate start = date.minusDays(days.get() + properties.getIntervalDays());
+        // LocalDate end = date.minusDays(days.get());
+        // String startDate = start.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
+        // String endDate = end.format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", ".");
+        // Param punishDate = new Param();
+        // punishDate.setId(startDate + "," + endDate);
+        // punishDate.setKey("23_s");
+        //
+        // // Param area = new Param();
+        // // area.setId(a.getCode());
+        // // area.setKey("17_s");
+        //
+        // String param = JSON.toJSONString(Lists.newArrayList(punishDate));
+        // log.info("列表请求参数 {}", param);
+        // params.put("queryCondition", param);
+        // // try {
+        // //     TimeUnit.SECONDS.sleep(4);
+        // // } catch (InterruptedException e) {
+        // //     e.printStackTrace();
+        // // }
+        //
+        // list(params);
+        days.getAndIncrement();
+        days.getAndAdd(properties.getIntervalDays());
         page(pageNum, pageSize);
 
     }
@@ -151,7 +184,7 @@ public class PunishService {
         String url = "https://cfws.samr.gov.cn/queryDoc";
         HttpResponse response = null;
         try {
-
+            TimeUnit.SECONDS.sleep(2);
             response = HttpRequest.post(url)
                     .form(params)
                     .timeout(-1)
@@ -193,7 +226,7 @@ public class PunishService {
             if (result.getSuccess()) {
                 JSONObject object = JSON.parseObject(result.getResult());
                 JSONArray jsonArray = object.getJSONObject("queryResult").getJSONArray("resultList");
-                log.info("列表数量={}", jsonArray.size());
+                log.info("pageNum={}，列表数量={}", params.get("pageNum"), jsonArray.size());
 
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject obj = jsonArray.getJSONObject(i);
@@ -214,13 +247,26 @@ public class PunishService {
                     entity.setResult(obj.getString("7"));
                     //       entity.setAreaCode(areCode);
                     //       entity.setAreaName(areaName);
-                    detail(docId, entity);
+
+                    if (executor.getQueue().size() > 50) {
+                        try {
+                            TimeUnit.SECONDS.sleep(20);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    executor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            detail(docId, entity);
+                        }
+                    });
+
                 }
-                if (jsonArray.size() > 0) {
+                if (jsonArray.size() == Integer.parseInt(params.get("pageSize").toString())) {
                     Integer pageNum = (Integer) params.get("pageNum");
                     params.put("pageNum", pageNum + 1);
                     list(params);
-                    TimeUnit.SECONDS.sleep(2);
                 }
             }
 
@@ -247,7 +293,7 @@ public class PunishService {
         HttpResponse response = null;
         PDDocument document = null;
         try {
-            TimeUnit.SECONDS.sleep(2);
+            //  TimeUnit.SECONDS.sleep(2);
 
             Map<String, Object> params = new HashMap<>();
             params.put("ciphertext", ParamsUtils.cipher());
@@ -279,14 +325,17 @@ public class PunishService {
             document = PDDocument.load(Base64.getDecoder().decode(object.getString("i7").getBytes(StandardCharsets.UTF_8)));
             PDFTextStripper textStripper = new PDFTextStripper();
             String text = textStripper.getText(document);
+            entity.setType(object.getString("i4"));
             entity.setContent(text);
+            entity.setBase64Content(JSON.toJSONString(result));
             entity.setBasis(object.getString("i5"));
+            entity.setCreateTime(new Date());
             log.info("当事人名称={}", entity.getName());
             punishMapper.insert(entity);
         } catch (Exception e) {
             log.error("获取详情出错", e);
             try {
-                TimeUnit.MINUTES.sleep(20);
+                TimeUnit.MINUTES.sleep(1);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }

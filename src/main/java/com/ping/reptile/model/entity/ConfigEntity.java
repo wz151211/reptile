@@ -10,7 +10,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-@TableName(value = "pku_config")
+@TableName(value = "config")
 public class ConfigEntity {
 
 

@@ -111,7 +111,7 @@ public class CasePunishService {
             pageSize = config.getPageSize();
         }
         if (date == null) {
-            date = LocalDate.parse("", DateTimeFormatter.ISO_LOCAL_DATE);
+            date = LocalDate.parse(config.getDocDate(), DateTimeFormatter.ISO_LOCAL_DATE);
         }
         List<PunishEntity> caseNoList = punishMapper.getCaseNoList();
         for (PunishEntity entity : caseNoList) {
@@ -181,10 +181,10 @@ public class CasePunishService {
                     .header("Sec-Fetch-Dest", "empty")
                     .header("Sec-Fetch-Mode", "cors")
                     .header("Sec-Fetch-Site", "same-origin")
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36")
-                    .header("sec-ch-ua", "\"Chromium\";v=\"104\", \" Not A;Brand\";v=\"99\", \"Google Chrome\";v=\"104\"")
+                    .header("User-Agent", config.getAgent())
+                    .header("sec-ch-ua", config.getChua())
                     .header("sec-ch-ua-mobile", "?0")
-                    .header("sec-ch-ua-platform", "\"Windows\"")
+                    .header("sec-ch-ua-platform", "\"macOS\"")
                     .header("X-Requested-With", "XMLHttpRequest")
                     .execute();
         } catch (Exception e) {

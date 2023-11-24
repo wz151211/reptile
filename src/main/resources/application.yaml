@@ -36,8 +36,8 @@ logging:
     name: ./log/${spring.application.name}.log
 
 custom:
-  id: 2
-  intervalDays: 0
+  id: 1
+  intervalDays: 30
   category: 1
 server:
   port: 9002
