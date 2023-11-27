@@ -4,7 +4,7 @@ spring:
     driverClassName: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://47.95.218.217:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
     username: root
-      password: document@ABC
+    password: document@ABC
     druid:
       initial-size: 30
       min-idle: 1

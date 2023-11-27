@@ -9,10 +9,11 @@ import lombok.Data;
 @Data
 public class Dict {
     private Integer id;
-    private String parentid;
+    private String pId;
     private String code;
     private String parent;
     private String name;
     private String text;
     private String province;
+    private Integer level;
 }

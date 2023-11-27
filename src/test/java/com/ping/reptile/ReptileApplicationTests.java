@@ -194,7 +194,7 @@ class ReptileApplicationTests {
                 CourtEntity entity = new CourtEntity();
                 entity.setId(court.getId());
                 entity.setCode(court.getCode());
-                entity.setParentId(court.getParentid());
+                entity.setParentId(court.getPId());
                 entity.setProvince(name);
                 entity.setName(court.getName());
                 try {
@@ -217,7 +217,7 @@ class ReptileApplicationTests {
             CourtEntity entity = new CourtEntity();
             entity.setId(court.getId());
             entity.setCode(court.getCode());
-            entity.setParentId(court.getParentid());
+            entity.setParentId(court.getPId());
             //   entity.setProvince(name);
             entity.setName(court.getName());
             try {
@@ -279,7 +279,7 @@ class ReptileApplicationTests {
                 CourtEntity entity = new CourtEntity();
                 entity.setId(court.getId());
                 entity.setCode(court.getCode());
-                entity.setParentId(court.getParentid());
+                entity.setParentId(court.getPId());
                 //   entity.setProvince(name);
                 entity.setName(court.getName());
                 try {

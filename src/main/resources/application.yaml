@@ -2,10 +2,10 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
-  #  url: jdbc:mysql://47.95.218.217:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
-  #  username: root
-  #  password: document@ABC
-    url: jdbc:mysql://127.0.0.1:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
+    #  url: jdbc:mysql://47.95.218.217:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
+    #  username: root
+    #  password: document@ABC
+    url: jdbc:mysql://192.168.0.100:3306/judgements?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8
     username: root
     password: 123456
     druid:
@@ -25,7 +25,7 @@ spring:
     name: reptile
   data:
     mongodb:
-       # uri: mongodb://root:documentABC@47.93.2.53:27017/cpws?authSource=admin
+      # uri: mongodb://root:documentABC@47.93.2.53:27017/cpws?authSource=admin
       uri: mongodb://localhost:27017/ws
 mybatis-plus:
   configuration:
@@ -37,7 +37,7 @@ logging:
 
 custom:
   id: 1
-  intervalDays: 30
+  intervalDays: 0
   category: 1
 server:
   port: 9002

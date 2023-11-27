@@ -163,9 +163,8 @@ public class TestPunish {
 
     @Test
     public void test4() throws IOException {
-        for (int i = 0; i < 20; i++) {
-            System.out.println(IpUtils.getIp());
-        }
+        String str = "511400";
+        System.out.println(str.substring(2,4));
 
 
     }
